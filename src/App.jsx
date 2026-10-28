@@ -1,15 +1,316 @@
-import React,{useState,useEffect} from 'react';
-import {motion,AnimatePresence,useReducedMotion} from 'framer-motion';
-import {Heart,ArrowDown,ArrowRight,ArrowLeft,Play,Pause,Volume2,VolumeX,Film,Music2,Mail,LockKeyhole,Camera,X,ChevronLeft,ChevronRight,Sparkles,RotateCcw,ExternalLink} from 'lucide-react';
-import {settings,chapters,songs,films,letters,finale} from './content';
-const easing=[0.22,1,0.36,1];
-const fade={initial:{opacity:0,y:24},whileInView:{opacity:1,y:0},viewport:{once:true,amount:.12},transition:{duration:.8,ease:easing}};
-function SceneTitle({eyebrow,title,subtitle}){return <motion.div {...fade} className="scene-title"><span className="eyebrow">{eyebrow}</span><h2>{title}</h2>{subtitle&&<p>{subtitle}</p>}</motion.div>}
-function Photo({src,children,className=''}){return <div className={'photo '+className} style={src?{backgroundImage:'linear-gradient(180deg, transparent, rgba(12,9,14,.4)),url('+JSON.stringify(src)+')'}:{}}>{!src&&<div className="photo-placeholder"><Camera size={34} strokeWidth={1}/><span>YOUR MEMORY GOES HERE</span></div>}{children}</div>}
-function MemoryCard({memory,index}){const [flipped,setFlipped]=useState(false);return <motion.article {...fade} className={'memory-card '+(index%2?'reverse':'')}><Photo src={memory.image}/><div className="memory-copy"><span className="eyebrow">{memory.type} · {memory.date}</span><h3>{memory.title}</h3><p>{memory.description}</p><button className="text-button" onClick={()=>setFlipped(!flipped)} aria-expanded={flipped}>{flipped?'Hide the secret':'What I was actually thinking'} <ArrowRight size={15}/></button><AnimatePresence>{flipped&&<motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:'auto'}} exit={{opacity:0,height:0}} className="secret">{memory.secret}</motion.div>}</AnimatePresence></div></motion.article>}
-function MusicPanel(){const [open,setOpen]=useState(false);const [muted,setMuted]=useState(true);const [playing,setPlaying]=useState(false);const [track,setTrack]=useState(0);const current=songs[track];const hasAudio=Boolean(current?.url);return <div className={'music-panel '+(open?'expanded':'')}><button className="music-toggle" onClick={()=>setOpen(!open)} aria-label="Toggle soundtrack"><Music2 size={19}/><span>OUR SOUNDTRACK</span></button>{open&&<div className="music-body"><span className="eyebrow">THE SONGS OF US</span><h3>{current.title}</h3><p>{current.artist}</p><blockquote>“{current.note}”</blockquote>{hasAudio?<a className="text-button" href={current.url} target="_blank" rel="noreferrer">Listen to this song <ExternalLink size={15}/></a>:<p className="small-note">Add a song link in src/content.js to enable listening.</p>}<div className="track-controls"><button aria-label="Previous track" onClick={()=>setTrack((track+songs.length-1)%songs.length)}><ChevronLeft/></button><button aria-label={playing?'Pause':'Play'} disabled={!hasAudio} onClick={()=>{setPlaying(!playing);setMuted(false)}}>{playing?<Pause/>:<Play/>}</button><button aria-label="Next track" onClick={()=>{setTrack((track+1)%songs.length);setPlaying(false)}}><ChevronRight/></button><button aria-label="Toggle mute" onClick={()=>setMuted(!muted)}>{muted?<VolumeX/>:<Volume2/>}</button></div><p className="small-note">Music links open in a separate player; playback controls are reserved for a future licensed audio integration.</p></div>}</div>}
-function LetterVault(){const [active,setActive]=useState(null);const [ps,setPs]=useState(false);useEffect(()=>{if(!active)return;const key=e=>{if(e.key==='Escape')setActive(null)};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key)},[active]);return <section id="letters" className="section letters-section"><SceneTitle eyebrow="A FEW WORDS, JUST FOR YOU" title="The Letter Vault" subtitle="Some things deserve to be written down. Choose an envelope."/ ><div className="letter-grid">{letters.map((letter,i)=><motion.button {...fade} key={letter.id} className="envelope" onClick={()=>{setActive(letter);setPs(false)}}><span className="envelope-art"><Mail size={45} strokeWidth={1}/><Heart size={13} fill="currentColor"/></span><span className="eyebrow">LETTER 0{i+1}</span><strong>{letter.title}</strong><small>{letter.caption}</small><span className="open-hint">OPEN LETTER ↗</span></motion.button>)}</div><AnimatePresence>{active&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={()=>setActive(null)}><motion.div role="dialog" aria-modal="true" aria-label={active.title} className="letter-paper" initial={{y:60,scale:.95,opacity:0}} animate={{y:0,scale:1,opacity:1}} exit={{y:30,opacity:0}} transition={{duration:.45,ease:easing}} onMouseDown={e=>e.stopPropagation()}><button className="close-modal" aria-label="Close letter" onClick={()=>setActive(null)}><X/></button><span className="eyebrow">A LETTER TO YOU</span><h3>{active.title}</h3>{active.body.map((line,i)=><p key={i}>{line}</p>)}<button className="text-button ink" onClick={()=>setPs(!ps)}>{ps?'Hide P.S.':'One more thing…'} <Heart size={15}/></button>{ps&&<p className="postscript">{active.ps}</p>}</motion.div></motion.div>}</AnimatePresence></section>}
-function Cinema(){const [selected,setSelected]=useState(null);return <section id="cinema" className="section cinema-section"><SceneTitle eyebrow="ROLL THE MEMORIES" title="Our Little Cinema" subtitle="Every great love story deserves its own movie. Even the bloopers."/ ><div className="film-grid">{films.map((film,i)=><motion.button {...fade} key={film.id} className="film-card" onClick={()=>setSelected(film)}><Photo src={film.poster}><div className="film-icon"><Film size={28}/></div></Photo><span className="eyebrow">FILM 0{i+1}</span><h3>{film.title}</h3><p>{film.subtitle}</p></motion.button>)}</div><AnimatePresence>{selected&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={()=>setSelected(null)}><div role="dialog" aria-modal="true" aria-label={selected.title} className="video-modal" onMouseDown={e=>e.stopPropagation()}><button className="close-modal" onClick={()=>setSelected(null)} aria-label="Close video"><X/></button>{selected.src?<video controls playsInline poster={selected.poster||undefined} src={selected.src}/>:<div className="video-empty"><Film size={46}/><h3>{selected.title}</h3><p>Add your video source in src/content.js.</p></div>}</div></motion.div>}</AnimatePresence></section>}
-function Chapter({chapter,index}){return <section className="section chapter" id={'chapter-'+chapter.id}><motion.div {...fade} className="chapter-heading"><span className="chapter-numeral">{chapter.roman}</span><div><span className="eyebrow">ACT {chapter.roman} · {chapter.year}</span><h2>{chapter.name}</h2><p>{chapter.subtitle}</p></div></motion.div><motion.p {...fade} className="chapter-intro">“{chapter.intro}”</motion.p><div className="memories">{chapter.memories.map((m,i)=><MemoryCard key={m.id} memory={m} index={i}/>)}</div><motion.blockquote {...fade} className="chapter-quote">{chapter.quote}</motion.blockquote><a className="next-chapter" href={index===2?'#cinema':'#chapter-'+chapters[index+1].id}>{index===2?'The memories continue':'The next chapter'} <ArrowDown size={16}/></a></section>}
-function Finale(){const [show,setShow]=useState(false);return <section id="finale" className="section finale"><div className="finale-glow"/><motion.div {...fade} className="finale-inner"><span className="eyebrow">THE FINAL SCENE</span><Heart size={36} strokeWidth={1} className="finale-heart"/><h2>{finale.lead}</h2><p className="big-answer">{finale.answer}</p><p className="finale-invite">There is one last thing I wanted to tell you.</p><button className="primary-button" onClick={()=>setShow(true)}>Read My Final Letter <ArrowRight size={17}/></button></motion.div><AnimatePresence>{show&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={()=>setShow(false)}><motion.div role="dialog" aria-modal="true" aria-label="Final love letter" className="letter-paper finale-letter" initial={{y:50,opacity:0}} animate={{y:0,opacity:1}} exit={{y:40,opacity:0}} onMouseDown={e=>e.stopPropagation()}><button className="close-modal" onClick={()=>setShow(false)} aria-label="Close letter"><X/></button><span className="eyebrow">TO BE CONTINUED, FOREVER</span><h3>My Favorite Story Is Us</h3>{finale.letter.map((line,i)=><p key={i}>{line}</p>)}<p className="signature">{finale.signature}</p><div className="closing-heart">♥</div></motion.div></motion.div>}</AnimatePresence><div className="end-title"><span className="eyebrow">THE END OF CHAPTER THREE</span><h3>{settings.closing}</h3><p>{settings.subclosing}</p><a href="#home" className="text-button">Relive our story <RotateCcw size={15}/></a></div></section>}
-export default function App(){const [started,setStarted]=useState(false);return <div className="site"><header className="site-header"><a href="#home" className="wordmark">still you<span>♡</span></a><nav aria-label="Main navigation"><a href="#chapter-one">Story</a><a href="#cinema">Films</a><a href="#letters">Letters</a><a className="nav-end" href="#finale">Our Forever ↗</a></nav></header><main><section id="home" className="hero"><div className="hero-grain"/><div className="hero-orbit orbit-one"/><div className="hero-orbit orbit-two"/><motion.div initial={{opacity:0,y:28}} animate={{opacity:1,y:0}} transition={{duration:1.1}} className="hero-content"><span className="hero-eyebrow"><span className="dot"/> {settings.eyebrow} <span className="dot"/></span><div className="hero-rule"/><h1>Three Years,<br/><em>Still You.</em></h1><p>{settings.dedication}</p><div className="hero-action"><a href="#chapter-one" className="primary-button" onClick={()=>setStarted(true)}>Begin Our Story <ArrowRight size={18}/></a><span>BEST EXPERIENCED WITH LOVE ♡</span></div></motion.div><div className="hero-bottom"><span>01 / 03 · OUR STORY</span><a href="#chapter-one" aria-label="Scroll to first chapter"><ArrowDown size={18}/></a><span>{settings.dateLabel}</span></div></section><section className="interlude"><motion.div {...fade}><span className="eyebrow">FOR YOU, ALWAYS</span><p>“Out of all the stories life could have written for me, I’m glad mine has <em>you</em> in it.”</p><span className="tiny-heart">♥</span></motion.div></section>{chapters.map((chapter,i)=><Chapter key={chapter.id} chapter={chapter} index={i}/>)}<section id="soundtrack" className="section soundtrack-section"><SceneTitle eyebrow="THE SOUND OF US" title="Our Soundtrack" subtitle="Some songs are just songs. Others sound like a moment you never want to forget."/><div className="tracks-list">{songs.map((song,i)=><motion.div {...fade} className="track-row" key={song.id}><span className="track-number">0{i+1}</span><div><h3>{song.title}</h3><p>{song.artist} · {song.note}</p></div>{song.url?<a href={song.url} target="_blank" rel="noreferrer" aria-label={'Listen to '+song.title}><Play size={19}/></a>:<span className="track-empty"><Music2 size={19}/></span>}</motion.div>)}</div></section><Cinema/><LetterVault/><Finale/></main><footer><span>MADE WITH ALL MY LOVE ♡</span><span>THREE YEARS, STILL YOU.</span></footer><MusicPanel/></div>}
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowDown, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
+  Film, Heart, Mail, Menu, Music2, Play, RotateCcw, X
+} from "lucide-react";
+import { settings, chapters, songs, films, letters, finale } from "./content";
+
+// Public, illustrative Unsplash images. Replace with your own approved photos
+// in src/content.js. Never commit personal or private media to a public repo.
+const demo = {
+  hero: "https://images.unsplash.com/photo-1723719219412-d73eb2e2b631?auto=format&fit=crop&w=1400&q=82",
+  one: "https://images.unsplash.com/photo-1758810409620-f4961f7431e8?auto=format&fit=crop&w=1000&q=80",
+  two: "https://images.unsplash.com/photo-1667816944184-afefcbf2a1e4?auto=format&fit=crop&w=1000&q=80",
+  three: "https://images.unsplash.com/photo-1723719219412-d73eb2e2b631?auto=format&fit=crop&w=1000&q=80",
+  firstDate: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=1000&q=80",
+  adventures: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1000&q=80",
+  sunset: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1000&q=80"
+};
+const demoMemoryImages = {
+  "first-hello": demo.one,
+  "first-date": demo.firstDate,
+  "first-photo": demo.three,
+  adventure: demo.adventures,
+  outtakes: demo.two,
+  "little-things": demo.sunset,
+  growth: demo.two,
+  home: demo.firstDate,
+  today: demo.three
+};
+const reveal = {
+  initial: { opacity: 0, y: 22 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.12 },
+  transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
+};
+
+function Photo({ src, alt, className = "", eager = false, children, sample = false }) {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => setBroken(false), [src]);
+  return (
+    <div className={"photo " + className}>
+      {src && !broken ? (
+        <img src={src} alt={alt || "Romantic photograph"} loading={eager ? "eager" : "lazy"}
+          fetchPriority={eager ? "high" : undefined} decoding="async" onError={() => setBroken(true)} />
+      ) : <div className="photo-fallback"><Heart size={30} strokeWidth={1} /><span>Add your photo</span></div>}
+      {sample && <span className="sample-tag">SAMPLE PHOTO</span>}
+      {children}
+    </div>
+  );
+}
+
+function SectionHeading({ number, eyebrow, title, caption, light = false }) {
+  return <motion.div {...reveal} className={"section-heading " + (light ? "on-light" : "")}>
+    <span className="eyebrow">{number && <span className="section-number">{number}.</span>} {eyebrow}</span>
+    <h2>{title}</h2>
+    {caption && <p>{caption}</p>}
+  </motion.div>;
+}
+
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const limit = document.documentElement.scrollHeight - window.innerHeight;
+        setProgress(limit > 0 ? window.scrollY / limit : 0);
+      });
+    };
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, []);
+  return <div aria-hidden="true" className="scroll-progress"><span style={{ transform: "scaleX(" + progress + ")" }} /></div>;
+}
+
+function Header() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = e => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  const links = [
+    ["#overview", "Our story"], ["#chapter-one", "Year one"], ["#chapter-two", "Year two"],
+    ["#chapter-three", "Year three"], ["#soundtrack", "Soundtrack"],
+    ["#letters", "Love letters"], ["#cinema", "Little cinema"], ["#finale", "Grand finale"]
+  ];
+  return <>
+    <header className="site-header">
+      <button className="icon-button" onClick={() => setOpen(!open)} aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="story-navigation">
+        {open ? <X size={21}/> : <Menu size={21}/>}
+      </button>
+      <a href="#home" className="brand" onClick={() => setOpen(false)}>three years <i>♡</i></a>
+      <a className="icon-button heart-link" href="#finale" aria-label="Jump to the final letter"><Heart size={20} strokeWidth={1.7}/></a>
+    </header>
+    <ScrollProgress />
+    <AnimatePresence>
+      {open && <motion.nav id="story-navigation" className="menu-drawer" aria-label="Story navigation"
+        initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
+        <span className="eyebrow">FIND YOUR FAVORITE CHAPTER</span>
+        {links.map(([href, label], i) => <a key={href} href={href} onClick={() => setOpen(false)}>
+          <span>{String(i + 1).padStart(2, "0")}</span>{label}<ArrowRight size={15}/></a>)}
+      </motion.nav>}
+    </AnimatePresence>
+  </>;
+}
+
+function Hero() {
+  return <section id="home" className="hero">
+    <Photo className="hero-photo" src={demo.hero} eager alt="Illustrative silhouette of a couple against a sunset" sample />
+    <div className="hero-shade" />
+    <motion.div className="hero-copy" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.05 }}>
+      <span className="eyebrow">A LOVE STORY IN THREE CHAPTERS</span>
+      <h1>Three Years,<br/><em>Still You.</em></h1>
+      <div className="little-heart">♡</div>
+      <p>Three years of laughter, late nights, adventures, and a love that keeps feeling new.</p>
+      <a className="primary-button" href="#overview">Begin Our Story <ArrowRight size={17}/></a>
+      <span className="hero-footnote">♡ &nbsp; MADE FOR ONE VERY SPECIAL PERSON</span>
+    </motion.div>
+    <a className="scroll-cue" href="#overview"><span>SCROLL TO REMEMBER</span><ArrowDown size={17}/></a>
+    <div className="torn-edge torn-ivory" />
+  </section>;
+}
+
+function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt }) {
+  return <div className="polaroid" style={{ "--rotation": rotation }}>
+    <Photo src={image} alt={alt || "Illustrative couple photograph"} sample />
+    <div className="polaroid-caption">{number && <b>{number}</b>}<div><strong>{title}</strong><em>{subtitle}</em></div></div>
+  </div>;
+}
+
+function Overview() {
+  const images = [demo.one, demo.two, demo.three];
+  const labels = ["The Beginning", "Growing Together", "Still You"];
+  return <section className="paper-section overview" id="overview">
+    <SectionHeading light number="00" eyebrow="OUR LITTLE UNIVERSE" title={<>A love story in <em>three chapters.</em></>} caption="Different seasons. One favorite person." />
+    <div className="overview-cards">
+      {chapters.map((chapter, i) => <motion.a {...reveal} className="overview-link" href={"#chapter-" + chapter.id} key={chapter.id}>
+        <Polaroid image={images[i]} title={"Year " + (i + 1)} subtitle={labels[i]} number={i + 1} rotation={i % 2 ? "3deg" : "-3deg"} />
+      </motion.a>)}
+    </div>
+    <motion.blockquote {...reveal} className="overview-quote">“Out of all the stories life could have written for me, I’m glad mine has <em>you</em> in it.”</motion.blockquote>
+    <span className="doodle-heart" aria-hidden="true">♡</span>
+  </section>;
+}
+
+function MemoryCard({ memory, index, chapterIndex }) {
+  const [secret, setSecret] = useState(false);
+  const image = memory.image || demoMemoryImages[memory.id] || demo.one;
+  return <motion.article {...reveal} className={"memory-card memory-card-" + index}>
+    <div className="memory-photo-wrap">
+      <Photo src={image} alt={"Illustrative photo for " + memory.title} sample={!memory.image} />
+      <div className="tape" aria-hidden="true" />
+    </div>
+    <div className="memory-copy">
+      <span className="eyebrow">{memory.date}</span>
+      <h3>{memory.title}</h3>
+      <p>{memory.description}</p>
+      {memory.secret && <div className="memory-secret">
+        <button aria-expanded={secret} onClick={() => setSecret(!secret)}>
+          {secret ? "Fold this note away" : "What I was actually thinking?"} <span>{secret ? "−" : "+"}</span>
+        </button>
+        <AnimatePresence>{secret && <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>{memory.secret}</motion.p>}</AnimatePresence>
+      </div>}
+    </div>
+  </motion.article>;
+}
+
+function Chapter({ chapter, index }) {
+  const isDark = index === 1;
+  return <section id={"chapter-" + chapter.id} className={"story-chapter " + (isDark ? "dark-chapter" : "paper-section") + " chapter-" + chapter.id}>
+    <div className="chapter-top">
+      <motion.div {...reveal} className="chapter-label"><span className="eyebrow">0{index + 1}. / YEAR {index + 1}</span><span className="chapter-star">♡</span></motion.div>
+      <motion.div {...reveal} className="chapter-titles"><h2>{chapter.name}</h2><em>{index === 0 ? "The Beginning" : index === 1 ? "Growing Together" : "Still You"}</em></motion.div>
+      <motion.p {...reveal} className="chapter-opening">{chapter.intro}</motion.p>
+    </div>
+    <div className="chapter-hero-image">
+      <Photo src={chapter.memories[0]?.image || [demo.one, demo.two, demo.three][index]}
+        alt={"Illustrative chapter " + (index + 1) + " photograph"} sample={!chapter.memories[0]?.image} />
+      <div className="chapter-image-caption">CHAPTER {index + 1} <span>·</span> {chapter.year}</div>
+    </div>
+    {index === 1 && <div className="chapter-tags"><span>ALL MEMORIES</span><span>ADVENTURES</span><span>LAUGHTER</span><span>LITTLE THINGS</span></div>}
+    {index === 2 && <div className="paper-note"><span>THE LITTLE THINGS</span><p>Our morning texts<br/>Our late night talks<br/>Finding comfort in silence<br/>Still choosing each other</p><i>♡</i></div>}
+    <div className="memory-stream">{chapter.memories.map((m, i) => <MemoryCard key={m.id} memory={m} index={i} chapterIndex={index} />)}</div>
+    <motion.blockquote {...reveal} className="chapter-ending">“{chapter.quote}”<span>♡</span></motion.blockquote>
+    <a className="chapter-next" href={index === 2 ? "#soundtrack" : "#chapter-" + chapters[index + 1].id}>Keep scrolling through our story <ArrowDown size={16}/></a>
+    {index !== 1 && <div className={"torn-edge " + (index === 0 ? "torn-dark" : "torn-dark")} />}
+  </section>;
+}
+
+function Soundtrack() {
+  return <section className="soundtrack-section" id="soundtrack">
+    <SectionHeading number="04" eyebrow="SONGS THAT TELL OUR STORY" title="Our Soundtrack" caption="Some songs take you right back to a moment. These are ours." />
+    <div className="record-scene">
+      <div className="record-cover"><Photo src={demo.sunset} alt="Illustrative sunset for the soundtrack cover" sample /></div>
+      <div className="vinyl" aria-hidden="true"><span /></div>
+    </div>
+    <div className="song-list">{songs.map((song, i) => <motion.div {...reveal} className="song" key={song.id}>
+      <span className="song-index">0{i + 1}</span>
+      <div className="song-details"><h3>{song.title}</h3><p>{song.artist}</p><small>{song.note}</small></div>
+      {song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" aria-label={"Open " + song.title}><Play size={18}/></a>
+        : <span className="song-pending" title="Add the song link in src/content.js"><Music2 size={17}/></span>}
+    </motion.div>)}</div>
+    <p className="small-note">Add your favorite songs in src/content.js. Licensed music opens in its original player.</p>
+  </section>;
+}
+
+function useDialog(isOpen, onClose) {
+  const closeRef = useRef(null);
+  const priorFocus = useRef(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    priorFocus.current = document.activeElement;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const keyDown = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "Tab") {
+        const modal = closeRef.current?.closest('[role="dialog"]');
+        if (!modal) return;
+        const nodes = [...modal.querySelectorAll('button:not([disabled]),a[href],video[controls]')];
+        if (!nodes.length) return;
+        const first = nodes[0], last = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    window.addEventListener("keydown", keyDown);
+    return () => { document.body.style.overflow = oldOverflow; window.removeEventListener("keydown", keyDown); priorFocus.current?.focus?.(); };
+  }, [isOpen, onClose]);
+  return closeRef;
+}
+
+function LetterModal({ letter, onClose, isFinal = false }) {
+  const [showPS, setShowPS] = useState(false);
+  const closeRef = useDialog(true, onClose);
+  return <motion.div className="modal-shade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <motion.div className="letter-modal" role="dialog" aria-modal="true" aria-label={letter.title}
+      initial={{ y: 32, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }}
+      exit={{ y: 20, opacity: 0 }} transition={{ duration: 0.35 }}>
+      <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>
+      <span className="eyebrow">{isFinal ? "TO BE CONTINUED, FOREVER" : "SEALED WITH LOVE"}</span>
+      <h2>{letter.title}</h2>
+      {letter.body.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+      {letter.ps && <><button className="ps-trigger" onClick={() => setShowPS(!showPS)}>{showPS ? "Hide P.S." : "P.S. One more thing..."} ♡</button>{showPS && <p className="postscript">{letter.ps}</p>}</>}
+      <div className="letter-seal">♥</div>
+    </motion.div>
+  </motion.div>;
+}
+
+function LetterVault() {
+  const [active, setActive] = useState(null);
+  return <section className="paper-section letters-section" id="letters">
+    <SectionHeading light number="05" eyebrow="WORDS FOR EVERY VERSION OF YOU" title="Letters to You" caption="A few things I have always wanted you to know. Choose an envelope." />
+    <div className="envelope-list">{letters.map((letter, i) => <motion.button {...reveal} className="envelope-row" key={letter.id} onClick={() => setActive(letter)}>
+      <span className="envelope-illustration"><Mail size={33} strokeWidth={1.2}/><span>♥</span></span>
+      <span className="envelope-details"><strong>{letter.title}</strong><small>{letter.caption}</small></span>
+      <ChevronRight size={19} strokeWidth={1.5}/>
+    </motion.button>)}</div>
+    <p className="letter-signoff">Four letters. A thousand feelings. Always you. ♡</p>
+    <AnimatePresence>{active && <LetterModal key={active.id} letter={active} onClose={() => setActive(null)}/>}</AnimatePresence>
+    <div className="torn-edge torn-dark" />
+  </section>;
+}
+
+function Cinema() {
+  const [active, setActive] = useState(null);
+  const closeRef = useDialog(Boolean(active), () => setActive(null));
+  return <section className="cinema-section" id="cinema">
+    <SectionHeading number="06" eyebrow="PRESS PLAY ON OUR FAVORITE MOMENTS" title="Our Little Cinema" caption="Some memories are better in motion. Even the embarrassing ones."/>
+    <div className="cinema-list">{films.map((film, i) => <motion.button {...reveal} className={"cinema-card cinema-card-" + i} key={film.id} onClick={() => setActive(film)}>
+      <div className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={"Illustrative preview for " + film.title} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></div>
+      <span className="eyebrow">FILM 0{i + 1}</span><h3>{film.title}</h3><p>{film.subtitle}</p>
+      <span className="cinema-link">{film.src ? "Watch this memory" : "Preview this section"} <ArrowRight size={15}/></span>
+    </motion.button>)}</div>
+    <AnimatePresence>{active && <motion.div className="modal-shade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onMouseDown={e => { if (e.target === e.currentTarget) setActive(null); }}>
+      <div className="cinema-modal" role="dialog" aria-modal="true" aria-label={active.title}>
+        <button ref={closeRef} className="modal-close" onClick={() => setActive(null)} aria-label="Close video"><X size={20}/></button>
+        {active.src ? <video key={active.src} controls playsInline src={active.src} poster={active.poster || undefined} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>Add your own video source in src/content.js to complete this memory.</p></div>}
+      </div>
+    </motion.div>}</AnimatePresence>
+  </section>;
+}
+
+function Finale() {
+  const [show, setShow] = useState(false);
+  return <section className="finale" id="finale">
+    <Photo className="finale-photo" src={demo.hero} alt="Illustrative sunset photograph of a couple" sample />
+    <div className="finale-shade" />
+    <div className="finale-lights" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/><i/></div>
+    <motion.div {...reveal} className="finale-copy">
+      <span className="eyebrow">07. / THE GRAND FINALE</span>
+      <h2>And Here We Are,<br/><em>Three Years Later ♡</em></h2>
+      <p>Through every season, every challenge, and every beautiful moment, I'm still so glad it's you. Thank you for three amazing years. Here's to more adventures, more laughter, and a lifetime of us.</p>
+      <button className="primary-button" onClick={() => setShow(true)}>Here's to Forever <Heart size={16}/></button>
+    </motion.div>
+    <div className="finale-bottom"><span>THE END OF CHAPTER THREE</span><h3>{settings.closing}</h3><p>{settings.subclosing}</p><a href="#home">Relive our story <RotateCcw size={15}/></a></div>
+    <AnimatePresence>{show && <LetterModal letter={{title:"My Favorite Story Is Us",body:finale.letter,ps:finale.signature}} isFinal onClose={() => setShow(false)}/>}</AnimatePresence>
+  </section>;
+}
+
+export default function App() {
+  return <div className="site"><Header /><main><Hero /><Overview />
+    {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
+    <Soundtrack /><LetterVault /><Cinema /><Finale /></main>
+    <footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">BACK TO THE BEGINNING ↑</a></footer>
+  </div>;
+}
