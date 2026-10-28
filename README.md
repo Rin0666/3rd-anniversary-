@@ -1,8 +1,8 @@
 # Three Years, Still You ♡
 
-A cinematic, mobile-first anniversary website celebrating three years of memories, little jokes, favorite songs, love letters and the next chapter.
+A mobile-first, scroll-driven cinematic anniversary website: sunset opening, three scrapbook chapters, interactive memories, soundtrack, love-letter vault, cinema and a grand finale.
 
-## Getting started
+## Preview & local development
 
 ```bash
 npm install
@@ -10,30 +10,51 @@ npm run dev
 npm run build
 ```
 
-This is a React + Vite application. Cloudflare Pages build command: `npm run build`. Output directory: `dist`.
+Cloudflare Pages settings: **Build command** `npm run build` · **Output directory** `dist` · **Root** `/`. GitHub pushes to `main` can trigger Cloudflare deployments if already connected.
 
-## Customize
+## Customize the experience
 
-Edit `src/content.js` to replace all sample memories, letter copy, song links, film sources, and finale text. Dates and photographs are intentionally placeholders. Change the color palette and cinematic styling in `src/styles.css`.
+All personal stories, chapter text, letters, track links and videos are in **`src/content.js`**. The app intentionally uses sample copy and illustrative photographs until you replace them. No real anniversary images or music have been uploaded.
 
-**Privacy:** This repository is public at the time of initial development. Do not commit real personal photos, private letters, private video links, or identifying data to it. Even after changing GitHub visibility, previously published history may persist elsewhere. Consider private Cloudflare R2 with authenticated Worker access before uploading sensitive content.
+| Content | Where to edit |
+| --- | --- |
+| Site title and dedication | `settings` |
+| Three years and their memories | `chapters[].memories` |
+| Song names, artist, listen URL | `songs` |
+| Cinema videos and cover images | `films` |
+| The four envelopes and secret P.S. | `letters` |
+| Final love letter | `finale` |
+| Demo photographs and memory image fallback | `demo` in `src/App.jsx` |
+| Layout, colors, fonts, textures and motion | `src/styles.css` |
 
-## Current features
+### Replacing a photo
 
-- Responsive cinematic prologue, chapter navigation, three story acts, nine editable memory cards
-- Playful hidden confessions, soundtrack link list, film gallery with video modal
-- Four interactive letters with personal P.S. reveals
-- Closing scene, final love letter and story replay
-- No autoplay; reduced-motion CSS; keyboard close for letters
+In `src/content.js`, set each memory's `image` to a valid, accessible URL, e.g. `image: "/media/my-memory.webp"` **only when the site is secured and the photo is not private**. For personal media, prefer an authenticated asset endpoint backed by private Cloudflare R2, then reference those protected URLs. For now, blank `image` values use illustrative photos, with a **SAMPLE PHOTO** label.
 
-## Remaining enhancements
+### Adding music
 
-- Upload approved photographs and videos to protected storage and replace placeholders
-- Connect authorized music playback and remove nonfunctional local transport controls
-- Add focus trapping and focus restoration to modals, improve browser testing
-- Run local build and mobile Playwright checks in an environment with Node access
-- Set up private deployment / Cloudflare Access for your intended recipient
+Set `songs[].url` to a legally available Spotify, YouTube Music, or similar share link. The soundtrack intentionally **opens that link** rather than pretending to stream audio or hosting copyrighted songs. Playback is controlled by the music provider.
 
-## Hosting
+### Adding videos
 
-Connect this repository in Cloudflare Pages, set framework preset **Vite**, build `npm run build`, output `dist`. Restrict site and media access before publishing personal memories.
+Set `films[].src` to an accessible video URL and optionally `films[].poster` to a poster image. Video plays in a modal with native controls only after the visitor opens it. Empty `src` displays an editable placeholder.
+
+### Editing letters
+
+Update `letters[].body` (array of paragraphs), `letters[].ps`, and `finale.letter`. These sample letters are intentionally generic.
+
+## Design decisions
+
+- Scroll-first single-column story on mobile; tasteful two-column memory grids on large screens
+- Cinematic hero and finale, warm torn-paper sections, Polaroid photographs, handwritten accents
+- Responsive tap targets, in-page navigation, smooth transitions, reduced-motion support
+- Interactive hidden confessions, accessible modal close buttons and Escape handling
+- Image lazy loading except the first hero image and graceful media fallbacks
+
+## Safety and privacy
+
+**This repository was public when the redesign was committed.** Never add identifiable or intimate photographs, original private letters, personal videos or secrets to public Git history. A password screen in React does **not** protect asset URLs or bundle content. Before personalizing: change repository visibility if desired, configure private media storage, and restrict the deployed website with Cloudflare Access or another server-side protection layer. Deleting a sensitive file from Git HEAD will not erase all historical copies.
+
+## Validation
+
+Run `npm run build` to validate JSX and bundling. A GitHub Actions build workflow is included for pushes and pull requests. Inspect the Cloudflare build log and test on a real phone before revealing the site to your partner.
