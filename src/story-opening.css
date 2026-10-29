@@ -1,0 +1,48 @@
+.story-locked { height: 100svh; overflow: clip; }
+.story-locked .hero { height: 100svh; min-height: 0; padding: 35px 20px; }
+.story-locked .hero h1 { font-size: clamp(60px, min(16vw, 16svh), 140px); }
+.begin-story { min-width: 225px; }
+.begin-story:disabled { cursor: wait; }
+.story-content:focus, .story-content section:focus { outline: none; }
+.screen-reader-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.story-burst { position: fixed; z-index: 35; inset: 0; overflow: hidden; pointer-events: none; contain: strict; }
+.story-burst-photo { position: absolute; left: 50%; top: 50%; width: 170px; margin: -110px 0 0 -85px; padding: 8px 8px 12px; background: #fff3df; box-shadow: 0 10px 30px #2811214d; will-change: transform; }
+.story-burst-photo .photo { height: 155px; }
+.story-burst-photo figcaption { margin-top: 9px; font-family: 'Caveat',cursive; font-size: 20px; line-height: 1.1; color: #9b626d; text-align: center; }
+.story-burst-photo .sample-tag { font-size: 5px; padding: 3px 4px; }
+.background-music { position: fixed; z-index: 22; left: 18px; bottom: max(18px,env(safe-area-inset-bottom)); }
+.background-music-toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 13px; border: 1px solid #b47c8a66; border-radius: 30px; background: #2a1824ed; color: #edc4bc; box-shadow: 0 4px 15px #140a1840; }
+.background-music-name { font-family: 'Cormorant Garamond',Georgia,serif; font-size: 18px; line-height: 1; }
+.background-music-name small { display: block; margin-top: 4px; font-family: 'DM Sans',sans-serif; font-size: 7px; letter-spacing: 1px; color: #bf9199; }
+.background-music-state { display: grid; place-items: center; }
+.music-retry { display: block; max-width: 180px; padding: 8px; font-size: 10px; line-height: 1.5; background: #2a1824; color: #edc4bc; border-radius: 4px; margin-top: 6px; }
+.mixtape-tracklist button.song-play { padding: 0; background: transparent; cursor: pointer; }
+
+/* One letter with the bouquet resting diagonally across its lower-right edge. */
+.final-letter-presentation { width: min(100%,760px); padding: 8px 34px 64px 8px; overflow-x: hidden; }
+.final-gift-layout { position: relative; display: block; }
+.final-letter-presentation .personal-signature { padding-bottom: 100px; }
+.final-letter-presentation .personal-signature .seal-mark { right: auto; left: 165px; bottom: 32px; }
+.final-letter-presentation > .modal-close { margin-right: -20px; }
+.bouquet-keepsake { position: absolute; z-index: 2; right: -30px; bottom: -45px; width: 360px; padding: 0; margin: 0; border: 0; background: none; box-shadow: none; pointer-events: none; }
+.bouquet-eyebrow, .bouquet-keepsake .flower-bouquet figcaption { display: none; }
+.bouquet-keepsake .flower-bouquet { margin: 0; }
+.bouquet-keepsake .bouquet-art { max-height: none; }
+.is-laid-down .bouquet-art { transform-origin: 28% 80%; }
+@media (max-width: 700px) {
+  .story-burst-photo { width: 115px; margin: -78px 0 0 -57px; padding: 6px 6px 9px; }
+  .story-burst-photo .photo { height: 100px; }
+  .story-burst-photo figcaption { font-size: 15px; }
+  .background-music { left: 12px; bottom: max(12px,env(safe-area-inset-bottom)); }
+  .background-music-toggle { width: 44px; height: 44px; justify-content: center; padding: 0; }
+  .background-music-name, .background-music-state { display: none; }
+  .final-letter-presentation { padding-right: 20px; padding-bottom: 52px; }
+  .bouquet-keepsake { width: 240px; right: -20px; bottom: -38px; }
+  .final-letter-presentation .personal-signature .seal-mark { left: 135px; width: 48px; height: 48px; font-size: 14px; }
+}
+@media (max-height: 520px) {
+  .story-locked .hero { padding-block: 14px; }
+  .story-locked .hero h1 { margin-block: 18px; font-size: 60px; }
+  .story-locked .hero-copy > p { margin-bottom: 18px; font-size: 12px; }
+  .story-locked .hero-footnote { margin-top: 10px; }
+}

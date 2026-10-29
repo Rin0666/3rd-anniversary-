@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowDown, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
@@ -15,6 +15,8 @@ import useDialog from "./useDialog";
 import DialogBackdrop from "./DialogBackdrop";
 import ScrollButterflies from "./ScrollButterflies";
 import FlowerBouquet from "./FlowerBouquet";
+import useCanonMusic from "./useCanonMusic";
+import { BackgroundMusic, StoryBurst } from "./StoryOpening";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -115,21 +117,26 @@ function Header() {
   </>;
 }
 
-function Hero() {
+function Hero({ phase, onBegin }) {
+  const reducedMotion = useReducedMotion();
+  const opened = phase === 'open';
   return <section id="home" className="hero" style={{ "--hero-focus": settings.heroImagePosition }}>
     <Photo className="hero-photo" src={settings.heroImage || demo.hero} eager alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
     <div className="hero-shade" />
     <div className="film-grain" aria-hidden="true" />
-    <motion.div className="hero-copy" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.05 }}>
+    <motion.div className="hero-copy" initial={reducedMotion ? false : { opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 1.05 }}>
       <span className="eyebrow">A LOVE STORY IN THREE CHAPTERS</span>
       <h1>Three Years,<br/><em>Still You.</em></h1>
-      <AnniversaryCounter startDate={settings.relationshipStartDate} timeZone={settings.timeZone} />
+      {opened && <AnniversaryCounter startDate={settings.relationshipStartDate} timeZone={settings.timeZone} />}
       <p>Three years of laughter, late nights, adventures, and a love that keeps feeling new.</p>
-      <a className="primary-button" href="#overview">Begin Our Story <ArrowRight size={17}/></a>
+      {opened ? <a className="primary-button" href="#overview">Continue Our Story <ArrowRight size={17}/></a>
+        : <button className="primary-button begin-story" onClick={onBegin} disabled={phase === 'bursting'} aria-controls="our-story" aria-busy={phase === 'bursting'}>
+          {phase === 'bursting' ? 'Opening Our Story…' : 'Begin Our Story'} <ArrowRight size={17}/>
+        </button>}
       <span className="hero-footnote">♡ &nbsp; MADE FOR ONE VERY SPECIAL PERSON</span>
     </motion.div>
-    <a className="scroll-cue" href="#overview"><span>SCROLL TO REMEMBER</span><ArrowDown size={17}/></a>
-    <div className="torn-edge torn-ivory" />
+    {opened && <><a className="scroll-cue" href="#overview"><span>SCROLL TO REMEMBER</span><ArrowDown size={17}/></a>
+    <div className="torn-edge torn-ivory" /></>}
   </section>;
 }
 
@@ -257,7 +264,7 @@ function Chapter({ chapter, index }) {
   </section>;
 }
 
-function Soundtrack() {
+function Soundtrack({ music }) {
   return <section className="soundtrack-section" id="soundtrack">
     <SectionHeading number="04" eyebrow="SONGS THAT TELL OUR STORY" title="Our Soundtrack" caption="Some songs take you right back to a moment. These are ours." />
     <div className="mixtape-keepsake" aria-hidden="true">
@@ -273,12 +280,13 @@ function Soundtrack() {
       <ol className="song-list">{songs.map((song, i) => <motion.li {...reveal} className="song" key={song.id}>
       <span className="song-index">0{i + 1}</span>
       <div className="song-details"><h3>{song.title}</h3><p>{song.artist}</p><small>{song.note}</small></div>
-      {song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" aria-label={"Open " + song.title}><ExternalLink size={17}/></a>
+      {song.background ? <button className="song-play" onClick={music.toggle} aria-pressed={music.playing} aria-label={(music.playing ? 'Pause ' : 'Play ') + song.title}><Music2 size={17}/></button>
+        : song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" onClick={music.pause} aria-label={"Open " + song.title}><ExternalLink size={17}/></a>
         : <span className="song-pending" title="Song link coming soon"><Music2 size={17}/></span>}
       </motion.li>)}</ol>
       <span className="tracklist-signoff">a few songs to carry us back.</span>
     </div>
-    <p className="small-note">Songs open in their original music player. Some links are still waiting for their first listen.</p>
+    <p className="small-note">Canon in D accompanies our story. Other songs open in their original music player.</p>
   </section>;
 }
 
@@ -316,7 +324,7 @@ function LetterModal({ letter, onClose, isFinal = false }) {
         variants={{ sealed: { y: 24, scale: .94 }, opened: { y: 0, scale: 1 } }}
         transition={{ duration: reducedMotion ? 0 : .6, delay: reducedMotion ? 0 : .5 }}>
         <span className="bouquet-eyebrow">A LITTLE GIFT, ALL MY LOVE</span>
-        <FlowerBouquet monogram={settings.monogram} />
+        <FlowerBouquet monogram={settings.monogram} laidDown />
       </motion.aside>}
       </div>
     </motion.div>
@@ -339,7 +347,7 @@ function LetterVault() {
   </section>;
 }
 
-function Cinema() {
+function Cinema({ music }) {
   const [active, setActive] = useState(null);
   const closeRef = useDialog(Boolean(active), () => setActive(null));
   return <section className="cinema-section" id="cinema">
@@ -357,7 +365,7 @@ function Cinema() {
     <AnimatePresence>{active && <DialogBackdrop onClose={() => setActive(null)}>
       <div className="cinema-modal" role="dialog" aria-modal="true" aria-label={active.title}>
         <button ref={closeRef} className="modal-close" onClick={() => setActive(null)} aria-label="Close video"><X size={20}/></button>
-        {active.src ? <video key={active.src} controls playsInline src={active.src} poster={active.poster || undefined} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>This little film is still waiting for its first scene.</p></div>}
+        {active.src ? <video key={active.src} controls playsInline src={active.src} poster={active.poster || undefined} onPlay={music.pause} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>This little film is still waiting for its first scene.</p></div>}
       </div>
     </DialogBackdrop>}</AnimatePresence>
   </section>;
@@ -395,9 +403,53 @@ function Finale() {
 }
 
 export default function App() {
-  return <MotionConfig reducedMotion="user"><PhotoAlbum photos={albumPhotos}><div className="site"><FallingRoses /><ScrollButterflies /><Header /><ChapterBookmarks /><main><Hero /><Overview />
+  const [phase, setPhase] = useState('cover');
+  const [storyReady, setStoryReady] = useState(false);
+  const music = useCanonMusic();
+  const opened = phase === 'open';
+  const finishOpening = useCallback(() => setPhase('open'), []);
+  useEffect(() => {
+    if (opened) return;
+    const oldOverflow = document.body.style.overflow;
+    const oldRestoration = history.scrollRestoration;
+    document.body.style.overflow = 'hidden';
+    history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    return () => { document.body.style.overflow = oldOverflow; history.scrollRestoration = oldRestoration; };
+  }, [opened]);
+  useEffect(() => {
+    if (!opened) return;
+    const frame = requestAnimationFrame(() => {
+      const requested = window.location.hash.slice(1);
+      const target = requested && requested !== 'home' ? document.getElementById(requested) : document.getElementById('overview');
+      const destination = target || document.getElementById('overview');
+      destination?.setAttribute('tabindex', '-1');
+      destination?.focus({ preventScroll: true });
+      destination?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+      setStoryReady(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [opened]);
+  useEffect(() => {
+    // Warm the three chapter images without adding visible content to the cover.
+    const timer = window.setTimeout(() => [0, 3, 6].forEach(index => {
+      if (albumPhotos[index]) { const image = new Image(); image.src = albumPhotos[index].src; }
+    }), 250);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const begin = () => {
+    if (phase !== 'cover') return;
+    void music.play();
+    setPhase('bursting');
+  };
+  return <MotionConfig reducedMotion="user"><PhotoAlbum photos={albumPhotos}><div className={"site" + (!opened ? ' story-locked' : '')} data-story-state={phase} data-story-ready={storyReady}>
+    {opened && <><FallingRoses /><ScrollButterflies /><Header /><ChapterBookmarks /></>}
+    <main><Hero phase={phase} onBegin={begin} />
+    {opened && <div id="our-story" className="story-content"><Overview />
     {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
-    <Soundtrack /><LetterVault /><Cinema /><Finale /></main>
-    <footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">BACK TO THE BEGINNING ↑</a></footer>
+    <Soundtrack music={music} /><LetterVault /><Cinema music={music} /><Finale /></div>}</main>
+    {opened && <><footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">Relive our story <RotateCcw size={15}/></a></footer><BackgroundMusic music={music} /></>}
+    {phase === 'bursting' && <StoryBurst photos={albumPhotos} onComplete={finishOpening} />}
+    <span className="screen-reader-only" role="status">{phase === 'bursting' ? 'Opening our story…' : ''}</span>
   </div></PhotoAlbum></MotionConfig>;
 }

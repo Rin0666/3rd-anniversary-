@@ -1,5 +1,25 @@
 import { test as base, expect } from '@playwright/test';
 
+async function unlockStory(page, { resetScroll = true } = {}) {
+  const reduced = await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // The opening has its own animation/audio coverage. Enter quietly for the
+  // other feature tests, without leaving scroll momentum in the decorations.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByRole('button', { name: 'Begin Our Story' }).click();
+  await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'true');
+  const music = page.locator('.background-music-toggle');
+  await expect(music).toHaveAttribute('aria-pressed', 'true');
+  await music.click();
+  await expect(music).toHaveAttribute('aria-pressed', 'false');
+  if (resetScroll) await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' });
+}
+
+async function enterStory(page) {
+  await page.goto('/');
+  await unlockStory(page);
+}
+
 const test = base.extend({
   page: async ({ page }, use) => {
     const errors = [];
@@ -40,7 +60,7 @@ test('Cloudflare serves the built page, bundles, cache headers, and SPA fallback
 });
 
 test('chapter navigation survives a reload', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   await expect(page.getByRole('heading', { name: 'Three Years, Still You.' })).toBeVisible();
   await page.getByRole('button', { name: 'Open navigation' }).click();
   const navigation = page.getByRole('navigation', { name: 'Story navigation' });
@@ -53,11 +73,12 @@ test('chapter navigation survives a reload', async ({ page }) => {
   await expect(page).toHaveURL(/#chapter-three$/);
   await expect(page.getByRole('button', { name: 'Open navigation' })).toHaveAttribute('aria-expanded', 'false');
   await page.reload();
+  await unlockStory(page, { resetScroll: false });
   await expect(page.locator('#chapter-three').getByRole('heading', { name: 'Still You', exact: true })).toBeVisible();
 });
 
 test('memory notes expand and fold away', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   await expect(page.locator('.memory-card')).toHaveCount(9);
   const memory = page.locator('.memory-card').first();
   const toggle = memory.locator('.confession-toggle');
@@ -81,7 +102,7 @@ test('memory notes expand and fold away', async ({ page }) => {
 });
 
 test('every letter and the finale open, reveal their P.S., and close', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   const titles = ['When You Miss Me', 'When You’re Sad', 'When We Disagree', 'Just Because'];
   for (const title of titles) {
     const envelope = page.getByRole('button', { name: new RegExp(title) });
@@ -107,7 +128,7 @@ test('every letter and the finale open, reveal their P.S., and close', async ({ 
 });
 
 test('both cinema placeholders open and close', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   for (const title of ['Our Little Movie', 'The Bloopers']) {
     await page.getByRole('button', { name: new RegExp(title) }).click();
     const dialog = page.getByRole('dialog', { name: title, exact: true });
@@ -119,7 +140,7 @@ test('both cinema placeholders open and close', async ({ page }) => {
 });
 
 test('the story works without remote media and fits the viewport', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   await expect(page.locator('.hero-photo .photo-fallback')).toBeVisible();
   for (const id of ['overview', 'chapter-one', 'chapter-two', 'chapter-three', 'soundtrack', 'letters', 'cinema', 'finale']) {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
@@ -130,7 +151,7 @@ test('the story works without remote media and fits the viewport', async ({ page
 
 test('roses fall gently and follow the direction of scrolling', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.goto('/');
+  await enterStory(page);
   const layer = page.locator('.falling-roses');
   await expect(layer).toBeVisible();
   await expect(layer).toHaveAttribute('aria-hidden', 'true');
@@ -165,7 +186,7 @@ test('roses fall gently and follow the direction of scrolling', async ({ page })
 });
 
 test('roses respect reduced motion and respond to preference changes', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   const layer = page.locator('.falling-roses');
   await expect(layer).toBeHidden();
   await expect(page.locator('.scroll-butterflies')).toBeHidden();
@@ -179,7 +200,7 @@ test('roses respect reduced motion and respond to preference changes', async ({ 
 
 test('the anniversary counter uses the supplied date and updates at Manila midnight', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-10-29T04:00:00Z'));
-  await page.goto('/');
+  await enterStory(page);
   const counter = page.getByRole('group', { name: 'Our time together' });
   await expect(counter).toContainText('1,093 days together');
   await expect(counter.locator('time')).toHaveAttribute('datetime', '2023-11-01');
@@ -189,7 +210,7 @@ test('the anniversary counter uses the supplied date and updates at Manila midni
 });
 
 test('Polaroid notes work with touch, keyboard, and mouse', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await enterStory(page);
   const toggle = page.getByRole('button', { name: 'A note from year 1' });
   const layoutPositions = () => page.evaluate(() => {
     // Measure document layout, independently of scrolling and decorative tilts.
@@ -241,7 +262,7 @@ test('Polaroid notes work with touch, keyboard, and mouse', async ({ page }, tes
 
 test('the envelope unfolds and the opened letter keeps keyboard focus', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.goto('/');
+  await enterStory(page);
   const envelope = page.getByRole('button', { name: /When You Miss Me/ });
   await envelope.click();
   const dialog = page.getByRole('dialog', { name: 'When You Miss Me' });
@@ -262,7 +283,7 @@ test('the envelope unfolds and the opened letter keeps keyboard focus', async ({
 });
 
 test('the finale lights warm up as the final message appears', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   const finale = page.locator('#finale');
   await finale.scrollIntoViewIfNeeded();
   await expect(finale).toHaveClass(/has-arrived/);
@@ -275,7 +296,7 @@ test('the finale lights warm up as the final message appears', async ({ page }) 
 });
 
 test('the photo album navigates, traps focus, and returns to its opener', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   const opener = page.locator('#chapter-one .memory-card').first().getByRole('button', { name: /^View photo:/ });
   await opener.click();
   const album = page.getByRole('dialog', { name: 'Our photo album' });
@@ -304,7 +325,7 @@ test('the photo album navigates, traps focus, and returns to its opener', async 
 });
 
 test('photo strips and paired snapshots open the corresponding memory', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await enterStory(page);
   const stripPhoto = page.locator('.photo-booth-strip .photo-open').first();
   if (testInfo.project.name === 'mobile') await stripPhoto.tap();
   else await stripPhoto.click();
@@ -324,7 +345,7 @@ test('photo strips and paired snapshots open the corresponding memory', async ({
 });
 
 test('ribbon bookmarks follow the chapter and navigate between years', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   const bookmarks = page.getByRole('navigation', { name: 'Chapter bookmarks', includeHidden: true });
   await expect(bookmarks).toBeHidden();
   await page.locator('#chapter-one').scrollIntoViewIfNeeded();
@@ -341,7 +362,7 @@ test('ribbon bookmarks follow the chapter and navigate between years', async ({ 
 
 test.describe('dialog background stability', () => {
   test('photo, letter, and cinema clicks preserve the background layout and reading position', async ({ page }) => {
-    await page.goto('/');
+    await enterStory(page);
     const background = () => page.evaluate(() => ({
       width: document.querySelector('.site').getBoundingClientRect().width,
       scrollX: window.scrollX,
@@ -369,7 +390,7 @@ test.describe('dialog background stability', () => {
 
   test('popup surfaces stay opaque above the page during opening animations', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await page.goto('/');
+    await enterStory(page);
     const cases = [
       [page.locator('#chapter-one .memory-card .photo-open').first(), 'Our photo album', 'Close photo album', '.photo-album'],
       [page.getByRole('button', { name: /When You Miss Me/ }), 'When You Miss Me', 'Close letter', '.letter-modal'],
@@ -404,7 +425,7 @@ test.describe('dialog background stability', () => {
 
 test('scrolling launches butterflies that fly across without blocking controls', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.goto('/');
+  await enterStory(page);
   const layer = page.locator('.scroll-butterflies');
   const butterfly = layer.locator('.scroll-butterfly').first();
   await expect(layer).toHaveAttribute('aria-hidden', 'true');
@@ -426,7 +447,7 @@ test('scrolling launches butterflies that fly across without blocking controls',
 });
 
 test('the sealed final envelope reveals the letter and tulip/sunflower bouquet', async ({ page }) => {
-  await page.goto('/');
+  await enterStory(page);
   const envelope = page.getByRole('button', { name: 'Open our final letter' });
   await envelope.scrollIntoViewIfNeeded();
   await expect(envelope.locator('.final-envelope-stamp')).toHaveText('R. & D.');
@@ -444,4 +465,73 @@ test('the sealed final envelope reveals the letter and tulip/sunflower bouquet',
   await close.click();
   await expect(dialog).toHaveCount(0);
   await expect(envelope).toBeFocused();
+});
+
+test('the cover locks the story until Begin Our Story is clicked', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Three Years, Still You.' })).toBeVisible();
+  await expect(page.getByRole('button')).toHaveCount(1);
+  await expect(page.locator('#our-story')).toHaveCount(0);
+  await expect(page.locator('.site-header')).toHaveCount(0);
+  await expect(page.locator('.background-music')).toHaveCount(0);
+  await page.mouse.wheel(0, 900);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await unlockStory(page);
+  await expect(page.locator('#our-story')).toBeVisible();
+  await expect(page.locator('.site-header')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight)).toBe(true);
+  await page.locator('#chapter-one').scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(0);
+});
+
+test('Begin bursts the photos outward and starts real Canon in D audio from that gesture', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.addInitScript(() => {
+    const NativeContext = window.AudioContext;
+    window.__musicContexts = [];
+    window.AudioContext = class extends NativeContext {
+      constructor(...args) { super(...args); window.__musicContexts.push(this); }
+    };
+    const connect = AudioNode.prototype.connect;
+    AudioNode.prototype.connect = function (destination, ...args) {
+      if (destination instanceof AudioDestinationNode) {
+        const analyser = this.context.createAnalyser();
+        connect.call(this, analyser);
+        window.__musicAnalyser = analyser;
+      }
+      return connect.call(this, destination, ...args);
+    };
+  });
+  await page.goto('/');
+  expect(await page.evaluate(() => window.__musicContexts.length)).toBe(0);
+  await page.getByRole('button', { name: 'Begin Our Story' }).click();
+  await expect(page.locator('.site')).toHaveAttribute('data-story-state', 'bursting');
+  await expect(page.locator('.story-burst-photo')).toHaveCount(9);
+  await expect(page.locator('#our-story')).toHaveCount(0);
+  const burstDistance = await page.locator('.story-burst-photo').first().evaluate(async node => {
+    const position = () => new DOMMatrixReadOnly(getComputedStyle(node).transform);
+    const start = position();
+    await new Promise(resolve => setTimeout(resolve, 180));
+    const end = position();
+    return Math.hypot(end.m41 - start.m41, end.m42 - start.m42);
+  });
+  expect(burstDistance).toBeGreaterThan(20);
+  await expect.poll(() => page.evaluate(() => {
+    if (!window.__musicAnalyser) return 0;
+    const samples = new Float32Array(window.__musicAnalyser.fftSize);
+    window.__musicAnalyser.getFloatTimeDomainData(samples);
+    return Math.max(...samples.map(Math.abs));
+  })).toBeGreaterThan(.0001);
+  await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'true');
+  const player = page.locator('.background-music-toggle');
+  await expect(player).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(() => window.__musicContexts.length)).toBe(1);
+  await player.click();
+  await expect(player).toHaveAttribute('aria-pressed', 'false');
+  await expect.poll(() => page.evaluate(() => window.__musicContexts[0].state)).toBe('suspended');
+  await player.click();
+  await expect(player).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => page.evaluate(() => window.__musicContexts[0].state)).toBe('running');
+  expect(await page.evaluate(() => window.__musicContexts.length)).toBe(1);
+  await player.click();
 });

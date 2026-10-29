@@ -2,6 +2,8 @@
 
 A mobile-first, scroll-driven cinematic anniversary website: sunset opening, three scrapbook chapters, interactive memories, soundtrack, love-letter vault, cinema and a grand finale.
 
+The opening shows only the hero and **Begin Our Story**. That click starts Canon in D, sends Polaroid photographs outward, and unlocks the scrollable scrapbook. Reduced motion skips the large burst. The story opens at the overview, or at the requested chapter for a section link; a reload returns to the opening cover.
+
 ## Preview & local development
 
 Use Node.js **22** (the version in `.node-version`, also used by CI and Cloudflare builds).
@@ -90,6 +92,8 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Final love letter | `finale` |
 | Tulip/sunflower bouquet illustration | `src/FlowerBouquet.jsx` |
 | Scroll-triggered butterfly flights | `src/ScrollButterflies.jsx` |
+| Opening photo burst | `src/StoryOpening.jsx` |
+| Canon in D arrangement and playback | `src/canonScore.js`, `src/canonPlayer.js` |
 | Demo photographs and memory image fallback | `demo` in `src/App.jsx` |
 | Layout, colors, fonts, textures and motion | `src/styles.css` and the feature CSS files imported by `src/main.jsx` |
 
@@ -104,6 +108,8 @@ Memory photographs, chapter photos, the year-two photo-booth strip, and year-thr
 ### Adding music
 
 Set `songs[].url` to a legally available Spotify, YouTube Music, or similar share link. The soundtrack intentionally **opens that link** rather than pretending to stream audio or hosting copyrighted songs. Playback is controlled by the music provider.
+
+Canon in D is played directly by the browser from a gentle original instrumental arrangement of Pachelbel's public-domain composition, in `src/canonScore.js` and `src/canonPlayer.js`. It needs no external recording or audio download. Playback starts inside the Begin button's user gesture, never on page load. The floating music control and the Canon track in the mixtape pause/resume the same player. Opening an external song or playing a cinema video pauses the background music.
 
 ### Adding videos
 
@@ -133,8 +139,9 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - Letters open with an unfolding envelope, lifted wax seal, and sliding paper; reduced motion skips the sequence
 - The finale gradually warms its lighting as it enters view, with an extra glow around the last letter
 - A closed envelope sealed with R. & D. replaces the finale button; opening it reveals the final message and a bouquet of her favorite tulips and sunflowers, with small daisies and greenery
-- The bouquet sways and its blooms move subtly; reduced motion disables these animations. The gift is side by side on desktop and stacks on mobile, with a close button that stays available while scrolling
-- The soundtrack is presented as a cassette sleeve and handwritten tracklist; linked songs still open their original provider
+- The bouquet sways and its blooms move subtly; reduced motion disables these animations. It rests diagonally across the letter's lower-right edge, leaving the message and signature readable, with a close button available while scrolling
+- The hero-only cover opens with an outward photo burst and user-initiated Canon in D, with play/pause available while reading
+- The soundtrack is presented as a cassette sleeve and handwritten tracklist; Canon controls the background arrangement, while other linked songs open their original provider
 - Cinema cards use perforated ticket layouts, filmstrip previews, and keepsake numbers
 - Year two has a vertical photo-booth strip; year three has paired, tilted snapshots
 - Memory photos open in a paper-framed album with captions and accessible navigation
@@ -164,3 +171,5 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test
 The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, Polaroid interactions, photo album navigation/focus/wrapping, photo-strip and snapshot entry points, active chapter ribbons, monograms/signatures, letter animation and keyboard focus, finale lighting, cinema placeholders, falling roses and scroll direction, reduced motion, the anniversary counter across Manila midnight, and JavaScript errors. Date arithmetic also has Node.js tests for leap days, timezone boundaries, and invalid dates. Browser tests deliberately block optional external images and fonts to check graceful fallback behavior. Personal song links and video playback require your own media in `src/content.js` and are not covered by placeholder tests.
 
 GitHub Actions installs with `npm ci`, builds the site, runs this suite, and uploads the successful `dist/` build as the `anniversary-site` artifact. This workflow validates the site; Cloudflare's Git integration handles deployment. Inspect the real Cloudflare deployment log and test on a phone before sharing the final site.
+
+Opening tests verify that the cover cannot scroll, the story remains hidden until Begin is clicked, photos actually move outward, and the audio graph produces a signal only after that gesture. They also check pause/resume without creating a second player. Other interaction tests enter through the reduced-motion opening and pause music during their setup.

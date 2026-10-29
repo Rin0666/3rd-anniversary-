@@ -30,9 +30,10 @@ function Daisy({ x, y, scale = 1 }) {
   </g>;
 }
 
-export default function FlowerBouquet({ monogram }) {
-  return <figure className="flower-bouquet">
-    <svg className="bouquet-art" viewBox="0 0 300 385" role="img" aria-label="A bouquet of pink tulips and golden sunflowers, with small daisies and greenery, tied with a ribbon">
+export default function FlowerBouquet({ monogram, laidDown = false }) {
+  return <figure className={"flower-bouquet" + (laidDown ? " is-laid-down" : "")}>
+    <svg className="bouquet-art" viewBox={laidDown ? "20 0 340 285" : "0 0 300 385"} role="img" aria-label="A bouquet of pink tulips and golden sunflowers, with small daisies and greenery, tied with a ribbon">
+      <g transform={laidDown ? 'translate(-20 -85) rotate(65 150 270)' : undefined}>
       <g fill="none" stroke="#7d9375" strokeWidth="3" strokeLinecap="round">
         <path d="M145 345C122 250 88 199 66 137M151 344C143 215 104 137 101 96M155 343C159 215 148 114 145 65M159 344C174 218 201 148 204 90M164 344C188 263 236 171 246 126M151 338C129 247 123 191 151 142M157 343C181 242 217 189 221 163" />
         <path d="M139 300C97 255 75 236 48 212M163 301C198 256 230 240 261 213" />
@@ -63,6 +64,7 @@ export default function FlowerBouquet({ monogram }) {
         <rect x="144" y="295" width="15" height="15" rx="5" />
       </g>
       <text x="151" y="375" textAnchor="middle" fill="#a37179" fontFamily="Caveat, cursive" fontSize="17">{monogram}</text>
+      </g>
     </svg>
     <figcaption>flowers for my favorite person.</figcaption>
   </figure>;
