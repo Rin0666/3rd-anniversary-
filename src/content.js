@@ -37,8 +37,8 @@ export const chapters = [
       {
         "id": "first-hello",
         "type": "FIRST CHAPTER",
-        "date": "OUR FIRST HELLO",
-        "title": "The day our worlds met",
+        "date": "OUR FIRST MEET",
+        "title": "Our First Meet",
         "description": "Tell the story of your first conversation here. What did you notice? What made you smile?",
         "secret": "What I was actually thinking: add a funny confession here.",
         "image": "/media/photos/first-hello.webp",
@@ -48,26 +48,31 @@ export const chapters = [
       {
         "id": "first-date",
         "type": "ONE FOR THE BOOKS",
-        "date": "OUR FIRST DATE",
-        "title": "Butterflies, probably",
-        "description": "Remember the little details: the place, the food, the nerves and the unexpected moments.",
-        "secret": "Insert a secret first-date confession.",
+        "date": "OUR FIRST MONTHSARY",
+        "title": "Our First Monthsary",
+        "description": "Remember your first monthsary: the little details, the smiles, and what that first month together meant to you.",
+        "secret": "Insert a little confession from your first monthsary.",
         "image": "/media/photos/year-one-first-monthsary.webp",
         "alt": "Our first monthsary photo together under the evening lights",
         "imagePosition": "center 30%"
       },
       {
         "id": "first-photo",
-        "type": "A LITTLE HISTORY",
-        "date": "OUR FIRST PHOTO",
-        "title": "The first of many",
-        "description": "Write about the first picture you took together and why it still matters.",
-        "secret": "Insert something silly about this photo.",
-        "image": "/media/photos/year-one-smile.webp",
-        "alt": "Smiling with a bouquet during our first year",
-        "imagePosition": "center 30%"
+        "type": "ONE YEAR OF US",
+        "date": "OUR FIRST ANNIVERSARY",
+        "title": "Our First Anniversary",
+        "description": "Write about your first anniversary and what that first year together meant to you.",
+        "secret": "A thought you kept from your first anniversary.",
+        "image": "/media/photos/cover-lakeside.webp",
+        "alt": "Our shoes by the lake beneath the evening sky",
+        "imagePosition": "center 85%"
       }
-    ]
+    ],
+    "overviewPhoto": {
+      "image": "/media/photos/year-one-smile.webp",
+      "alt": "Smiling with a bouquet during our first year",
+      "imagePosition": "center 30%"
+    }
   },
   {
     "id": "two",
@@ -238,24 +243,21 @@ export const songs = [
     "title": "K.",
     "artist": "Cigarettes After Sex",
     "note": "For the moments I wish I could stay in a little longer.",
-    "url": "https://open.spotify.com/search/K.%20Cigarettes%20After%20Sex",
-    "linkLabel": "Find K. by Cigarettes After Sex on Spotify"
+    "spotifyId": "2xGjfbXZnI8uQDhukoQURQ"
   },
   {
     "id": "from-the-start",
     "title": "From The Start",
     "artist": "Laufey",
     "note": "You had my heart from the start.",
-    "url": "https://open.spotify.com/search/From%20The%20Start%20Laufey",
-    "linkLabel": "Find From The Start by Laufey on Spotify"
+    "spotifyId": "43iIQbw5hx986dUEZbr3eN"
   },
   {
     "id": "itsumo",
     "title": "Itsumo",
     "artist": "Dice & K9",
     "note": "A little rhythm for our favorite memories.",
-    "url": "https://open.spotify.com/search/Itsumo%20Dice%20%26%20K9",
-    "linkLabel": "Find Itsumo by Dice & K9 on Spotify"
+    "spotifyId": "1rPjfsagVj3yZGXglA2iP3"
   }
 ];
 

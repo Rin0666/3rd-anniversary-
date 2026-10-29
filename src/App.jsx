@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowDown, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
-  Film, Heart, Mail, Menu, Music2, Play, RotateCcw, X
+  Film, Heart, Mail, Menu, Play, RotateCcw, X
 } from "lucide-react";
 import { settings, chapters, songs, films, letters, finale, favoriteTree, looseSnapshots } from "./content";
 import FallingRoses from "./FallingRoses";
@@ -163,30 +163,28 @@ function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note
   </div>;
 }
 
-function OverviewCard({ chapter, index, image, label }) {
+function OverviewCard({ chapter, index, photo, label }) {
   const [expanded, setExpanded] = useState(false);
-  const cover = chapterCover(chapter);
   return <motion.div {...reveal} className="overview-link">
     <button className="polaroid-toggle" aria-label={`A note from year ${index + 1}`} aria-expanded={expanded}
       aria-controls={`polaroid-note-${chapter.id}`} onClick={() => setExpanded(!expanded)}
       onPointerEnter={event => { if (event.pointerType === "mouse") setExpanded(true); }}
       onPointerLeave={event => { if (event.pointerType === "mouse") setExpanded(false); }}>
-      <Polaroid image={image} title={"Year " + (index + 1)} subtitle={label} number={index + 1}
+      <Polaroid image={memoryImage(photo)} title={"Year " + (index + 1)} subtitle={label} number={index + 1}
         rotation={index % 2 ? "3deg" : "-3deg"} note={chapter.quote} expanded={expanded} noteId={`polaroid-note-${chapter.id}`}
-        alt={cover?.alt} position={cover?.imagePosition} sample={!cover?.image} />
+        alt={photo.alt} position={photo.imagePosition} sample={!photo.image} />
     </button>
     <a className="chapter-open" href={"#chapter-" + chapter.id}>Turn to year {index + 1} <ArrowRight size={13} /></a>
   </motion.div>;
 }
 
 function Overview() {
-  const images = chapters.map(chapter => memoryImage(chapterCover(chapter)));
   const labels = ["The Beginning", "Growing Together", "Still You"];
   return <section className="paper-section overview" id="overview">
     <FloralSprig className="floral-corner-top" />
     <SectionHeading light number="00" eyebrow="OUR LITTLE UNIVERSE" title={<>A love story in <em>three chapters.</em></>} caption="Different seasons. One favorite person." />
     <div className="overview-cards">
-      {chapters.map((chapter, i) => <OverviewCard key={chapter.id} chapter={chapter} index={i} image={images[i]} label={labels[i]} />)}
+      {chapters.map((chapter, i) => <OverviewCard key={chapter.id} chapter={chapter} index={i} photo={chapter.overviewPhoto || chapterCover(chapter)} label={labels[i]} />)}
     </div>
     <motion.blockquote {...reveal} className="overview-quote">“Out of all the stories life could have written for me, I’m glad mine has <em>you</em> in it.”</motion.blockquote>
     <span className="doodle-heart" aria-hidden="true">♡</span>
@@ -284,7 +282,11 @@ function Chapter({ chapter, index }) {
   </section>;
 }
 
-function Soundtrack({ music }) {
+function Soundtrack({ activeSongId, onSongToggle }) {
+  const reducedMotion = useReducedMotion();
+  useEffect(() => {
+    if (activeSongId) document.getElementById(`song-player-${activeSongId}`)?.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'instant' : 'smooth' });
+  }, [activeSongId, reducedMotion]);
   return <section className="soundtrack-section" id="soundtrack">
     <SectionHeading number="04" eyebrow="SONGS THAT TELL OUR STORY" title="Our Soundtrack" caption="Some songs take you right back to a moment. These are ours." />
     <div className="mixtape-keepsake" aria-hidden="true">
@@ -300,13 +302,21 @@ function Soundtrack({ music }) {
       <ol className="song-list">{songs.map((song, i) => <motion.li {...reveal} className="song" key={song.id}>
       <span className="song-index">0{i + 1}</span>
       <div className="song-details"><h3>{song.title}</h3><p>{song.artist}</p><small>{song.note}</small></div>
-      {song.background ? <button className="song-play" onClick={music.toggle} aria-pressed={music.playing} aria-label={(music.playing ? 'Pause ' : 'Play ') + song.title}><Music2 size={17}/></button>
-        : song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" onClick={music.pause} aria-label={song.linkLabel || "Open " + song.title} title={song.linkLabel || "Open " + song.title}><ExternalLink size={17}/></a>
-        : <span className="song-pending" title="Song link coming soon"><Music2 size={17}/></span>}
+      <button className="song-play" onClick={() => onSongToggle(song.id)}
+        aria-label={activeSongId === song.id ? `Close ${song.title} player` : `Listen to ${song.title} by ${song.artist}`}
+        aria-expanded={activeSongId === song.id} aria-controls={`song-player-${song.id}`}>
+        {activeSongId === song.id ? <X size={17}/> : <Play size={16}/>}</button>
+      {activeSongId === song.id && <div className="song-embed" id={`song-player-${song.id}`} role="region" aria-label={`${song.title} player`}>
+        <iframe title={`${song.title} by ${song.artist} — Spotify player`}
+          src={`https://open.spotify.com/embed/track/${song.spotifyId}?theme=0`}
+          width="100%" height="152" allowFullScreen
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin" />
+      </div>}
       </motion.li>)}</ol>
       <span className="tracklist-signoff">a few songs to carry us back.</span>
     </div>
-    <p className="small-note">Find our favorites on Spotify. Canon in D accompanies our story.</p>
+    <p className="small-note">Open a song player, then press play to listen right here. Canon in D pauses while you choose your song.</p>
   </section>;
 }
 
@@ -368,12 +378,12 @@ function LetterVault() {
   </section>;
 }
 
-function Cinema({ music }) {
+function Cinema({ music, onOpen }) {
   const [active, setActive] = useState(null);
   const closeRef = useDialog(Boolean(active), () => setActive(null));
   return <section className="cinema-section" id="cinema">
     <SectionHeading number="06" eyebrow="PRESS PLAY ON OUR FAVORITE MOMENTS" title="Our Little Cinema" caption="Little adventures, a favorite tree, and a few moments worth replaying."/>
-    <div className="cinema-list">{films.map((film, i) => <motion.button {...reveal} className={"cinema-card cinema-card-" + i} key={film.id} onClick={() => { if (film.youtubeId) music.pause(); setActive(film); }}>
+    <div className="cinema-list">{films.map((film, i) => <motion.button {...reveal} className={"cinema-card cinema-card-" + i} key={film.id} onClick={() => { onOpen(); if (film.youtubeId) music.pause(); setActive(film); }}>
       <span className="ticket-header"><span>OUR LITTLE CINEMA</span><span>ADMIT TWO ♡</span></span>
       <span className="ticket-layout">
         <span className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={film.posterAlt || "Illustrative preview for " + film.title} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></span>
@@ -432,7 +442,13 @@ function Finale() {
 export default function App() {
   const [phase, setPhase] = useState('cover');
   const [storyReady, setStoryReady] = useState(false);
+  const [activeSongId, setActiveSongId] = useState(null);
   const music = useCanonMusic();
+  useEffect(() => { if (music.playing) setActiveSongId(null); }, [music.playing]);
+  const toggleSong = id => {
+    void music.pause();
+    setActiveSongId(current => current === id ? null : id);
+  };
   const opened = phase === 'open';
   const finishOpening = useCallback(() => setPhase('open'), []);
   useEffect(() => {
@@ -474,7 +490,7 @@ export default function App() {
     <main><Hero phase={phase} onBegin={begin} />
     {opened && <div id="our-story" className="story-content"><Overview />
     {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
-    <FavoriteTree /><Soundtrack music={music} /><LetterVault /><Cinema music={music} /><Finale /></div>}</main>
+    <FavoriteTree /><Soundtrack activeSongId={activeSongId} onSongToggle={toggleSong} /><LetterVault /><Cinema music={music} onOpen={() => setActiveSongId(null)} /><Finale /></div>}</main>
     {opened && <><footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">Relive our story <RotateCcw size={15}/></a></footer><BackgroundMusic music={music} /></>}
     {phase === 'bursting' && <StoryBurst photos={albumPhotos} onComplete={finishOpening} />}
     <span className="screen-reader-only" role="status">{phase === 'bursting' ? 'Opening our story…' : ''}</span>

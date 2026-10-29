@@ -101,6 +101,8 @@ test('chapter navigation survives a reload', async ({ page }) => {
 test('memory notes expand and fold away', async ({ page }) => {
   await enterStory(page);
   await expect(page.locator('.memory-card')).toHaveCount(9);
+  await expect(page.locator('#chapter-one .memory-card h3')).toHaveText(['Our First Meet', 'Our First Monthsary', 'Our First Anniversary']);
+  await expect(page.locator('#chapter-one .memory-card').nth(2).locator('img')).toHaveAttribute('src', '/media/photos/cover-lakeside.webp');
   const memory = page.locator('.memory-card').first();
   const toggle = memory.locator('.confession-toggle');
   await toggle.click();
@@ -188,6 +190,52 @@ test('both YouTube Shorts open on demand, fit the screen, and pause background m
     await expect(page.locator('iframe')).toHaveCount(0);
     await expect(opener).toBeFocused();
   }
+});
+
+test('favorite songs play inside the page with one player and no overlapping background music', async ({ page }) => {
+  const requests = [];
+  await page.route('https://open.spotify.com/embed/track/**', route => {
+    requests.push(route.request().url());
+    return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Spotify fixture</title><button>Play song</button>' });
+  });
+  await enterStory(page);
+  expect(requests).toEqual([]);
+  const originalURL = page.url();
+  const music = page.locator('.background-music-toggle');
+  await music.click();
+  await expect(music).toHaveAttribute('aria-pressed', 'true');
+  for (const [title, artist, id] of [
+    ['K.', 'Cigarettes After Sex', '2xGjfbXZnI8uQDhukoQURQ'],
+    ['From The Start', 'Laufey', '43iIQbw5hx986dUEZbr3eN'],
+    ['Itsumo', 'Dice & K9', '1rPjfsagVj3yZGXglA2iP3'],
+  ]) {
+    const button = page.getByRole('button', { name: `Listen to ${title} by ${artist}`, exact: true });
+    await button.click();
+    await expect(music).toHaveAttribute('aria-pressed', 'false');
+    const player = page.getByRole('region', { name: `${title} player`, exact: true });
+    await expect(page.locator('.song-embed iframe')).toHaveCount(1);
+    await expect(player.locator('iframe')).toHaveAttribute('src', `https://open.spotify.com/embed/track/${id}?theme=0`);
+    await expect(player.locator('iframe')).toHaveAttribute('title', `${title} by ${artist} — Spotify player`);
+    await expect.poll(() => requests.some(url => url.includes(id))).toBe(true);
+    await expect(player.locator('iframe')).toBeInViewport({ ratio: .99 });
+    await expect(page.getByRole('button', { name: `Close ${title} player`, exact: true })).toHaveAttribute('aria-expanded', 'true');
+    expect(page.url()).toBe(originalURL);
+    expect(await page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  await page.getByRole('button', { name: 'Close Itsumo player', exact: true }).click();
+  await expect(page.locator('.song-embed iframe')).toHaveCount(0);
+  const first = page.getByRole('button', { name: 'Listen to K. by Cigarettes After Sex', exact: true });
+  await first.click();
+  await music.click();
+  await expect(music).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.song-embed iframe')).toHaveCount(0);
+  await first.click();
+  await page.getByRole('button', { name: /Our Pangasinan Trip/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Our Pangasinan Trip' })).toBeVisible();
+  await expect(page.locator('.song-embed iframe')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close video' }).click();
+  expect(page.context().pages()).toHaveLength(1);
 });
 
 test('the story works without remote media and fits the viewport', async ({ page }) => {
@@ -350,14 +398,14 @@ test('the finale lights warm up as the final message appears', async ({ page }) 
 
 test('the photo album navigates, traps focus, and returns to its opener', async ({ page }) => {
   await enterStory(page);
-  await expect(page.locator('#overview .polaroid img').first()).toHaveAttribute('src', '/media/photos/year-one-together.webp');
+  await expect(page.locator('#overview .polaroid img').first()).toHaveAttribute('src', '/media/photos/year-one-smile.webp');
   await expect(page.locator('#chapter-one .chapter-hero-image img')).toHaveAttribute('src', '/media/photos/year-one-together.webp');
   await expect(page.locator('#chapter-one .memory-card img').first()).toHaveAttribute('src', '/media/photos/first-hello.webp');
   const opener = page.locator('#chapter-one .memory-card').first().getByRole('button', { name: /^View photo:/ });
   await opener.click();
   const album = page.getByRole('dialog', { name: 'Our photo album' });
   const close = album.getByRole('button', { name: 'Close photo album' });
-  await expect(album.getByRole('heading')).toHaveText('The day our worlds met');
+  await expect(album.getByRole('heading')).toHaveText('Our First Meet');
   await expect(album.getByRole('status')).toHaveText('Photo 1 of 17');
   await expect(close).toBeFocused();
   expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
@@ -366,9 +414,14 @@ test('the photo album navigates, traps focus, and returns to its opener', async 
   await page.keyboard.press('Tab');
   await expect(close).toBeFocused();
   await album.getByRole('button', { name: 'Next photo' }).click();
-  await expect(album.getByRole('heading')).toHaveText('Butterflies, probably');
+  await expect(album.getByRole('heading')).toHaveText('Our First Monthsary');
+  await album.getByRole('button', { name: 'Next photo' }).click();
+  await expect(album.getByRole('heading')).toHaveText('Our First Anniversary');
+  await expect(album.locator('.album-photo img')).toHaveAttribute('src', '/media/photos/cover-lakeside.webp');
   await album.getByRole('button', { name: 'Previous photo' }).click();
-  await expect(album.getByRole('heading')).toHaveText('The day our worlds met');
+  await expect(album.getByRole('heading')).toHaveText('Our First Monthsary');
+  await album.getByRole('button', { name: 'Previous photo' }).click();
+  await expect(album.getByRole('heading')).toHaveText('Our First Meet');
   await page.keyboard.press('ArrowLeft');
   await expect(album.getByRole('heading')).toHaveText('Our Favorite Tree');
   await expect(album.getByRole('status')).toHaveText('Photo 17 of 17');
@@ -440,8 +493,20 @@ test.describe('dialog background stability', () => {
     for (const [opener, title, closeName] of cases) {
       await opener.scrollIntoViewIfNeeded();
       await opener.focus();
-      const before = await background();
+      // The browser can reposition a target while Playwright waits for it to
+      // settle. Measure at pointerdown, immediately before the app opens it.
+      await opener.evaluate(node => {
+        delete window.__beforeDialogBackground;
+        node.addEventListener('pointerdown', () => {
+          window.__beforeDialogBackground = {
+            width: document.querySelector('.site').getBoundingClientRect().width,
+            scrollX: window.scrollX, scrollY: window.scrollY,
+          };
+        }, { once: true });
+      });
       await opener.click();
+      const before = await page.evaluate(() => window.__beforeDialogBackground);
+      expect(before).toBeDefined();
       const dialog = page.getByRole('dialog', { name: title, exact: true });
       await expect(dialog).toBeVisible();
       await expect.poll(background).toEqual(before);

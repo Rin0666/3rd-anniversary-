@@ -77,7 +77,7 @@ Illustrative photos and fonts load from Unsplash and Google Fonts. The site stil
 
 ## Customize the experience
 
-All personal stories, chapter text, letters, track links and videos are in **`src/content.js`**. The cover, year-by-year photographs, camera-roll snapshots, and favorite tree use the supplied photos. The story text and letters remain editable sample copy. Canon in D is generated in the browser, and the favorite-song links open Spotify.
+All personal stories, chapter text, letters, music players and videos are in **`src/content.js`**. The cover, year-by-year photographs, camera-roll snapshots, and favorite tree use the supplied photos. The story text and letters remain editable sample copy. Canon in D is generated in the browser, and favorite songs play in embedded Spotify players within the page.
 
 | Content | Where to edit |
 | --- | --- |
@@ -86,10 +86,11 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Days together and calendar timezone | `settings.relationshipStartDate`, `settings.timeZone` |
 | Seal initials and final signature | `settings.monogram`, `settings.signature` |
 | Three years and their memories | `chapters[].memories` |
+| Separate overview Polaroid image | `chapters[].overviewPhoto` |
 | Extra year-two and year-three strip/snapshot photos | `chapters[].extraPhotos`, `chapters[].keepsakeIds` |
 | Camera-roll Polaroids tucked into each year | `looseSnapshots` |
 | Favorite tree photo, crop, caption, and note | `favoriteTree` |
-| Song names, artist, listen URL | `songs` |
+| Song names, artist, and Spotify track ID | `songs` |
 | Cinema videos and cover images | `films` |
 | The four envelopes and secret P.S. | `letters` |
 | Final love letter | `finale` |
@@ -104,7 +105,9 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 
 The opening and finale share `settings.heroImage`, currently the supplied lakeside cover photo. Set `settings.heroImageAlt` and adjust `settings.heroImagePosition` to keep your subject in the crop. An empty value restores the illustrative fallback. The opening adds a warm tint, vignette, and fine film texture.
 
-All 16 photographs from the uploaded ZIP are used: one shared cover, nine main memory photos, three extra chapter keepsakes, and three camera-roll Polaroids spread across the years. The separately uploaded tree photo brings the total to 17. Browser-ready copies are in `public/media/photos/`, converted to WebP with a maximum edge of 1600 pixels, sRGB color, and embedded metadata removed. Original HEIC/JPG uploads are kept outside the repository. Overview cards and the opening photo burst reuse the real memory photos; the album contains the 16 non-cover photographs.
+All 16 photographs from the uploaded ZIP, the separately uploaded tree photo, and the newer first-meet photo from GitHub are used. Browser-ready copies are in `public/media/photos/`, converted to WebP with a maximum edge of 1600 pixels, sRGB color, and embedded metadata removed. Original HEIC/JPG uploads are kept outside the repository. The first-year memories read **Our First Meet → Our First Monthsary → Our First Anniversary**, with the lakeside cover used for the anniversary. The former third-card photo now appears in the year-one overview Polaroid. The album includes the main memories, extra chapter keepsakes, camera-roll Polaroids, year-one cover, and favorite tree.
+
+The layout currently has 26 permanent image placements and 19 distinct available images (18 supplied photos plus a video-frame poster). Seven additional unique photos are needed to give every permanent placement a separate image. The opening animation and album remain alternate views of the corresponding scrapbook photographs.
 
 In `src/content.js`, set each memory's `image` to a valid, accessible URL, e.g. `image: "/media/my-memory.webp"` **only when the site is secured and the photo is not private**. For personal media, prefer an authenticated asset endpoint backed by private Cloudflare R2, then reference those protected URLs. For now, blank `image` values use illustrative photos, with a **SAMPLE PHOTO** label.
 
@@ -114,9 +117,9 @@ The **Our Favorite Tree** interlude follows year three, with the supplied nightt
 
 ### Adding music
 
-The favorite-song mixtape contains **K. — Cigarettes After Sex**, **From The Start — Laufey**, and **Itsumo — Dice & K9**, in that order. Each entry opens a Spotify search for the song and artist. Set `songs[].url` to a preferred recording's Spotify, YouTube Music, or similar share link when available, and update its `linkLabel` to describe the destination. Playback is controlled by the music provider.
+The favorite-song mixtape contains **K. — Cigarettes After Sex**, **From The Start — Laufey**, and **Itsumo — Dice & K9**, in that order. Their supplied Spotify track IDs are configured in `songs[].spotifyId`. Each Listen button opens a compact, 152-pixel Spotify player inside that song's row. The player loads only after the visitor opens it; selecting another song or closing the row removes the previous iframe, stopping its audio. The visitor presses play in Spotify's controls and can continue browsing the page. Spotify controls account requirements and full-track availability.
 
-Canon in D is played directly by the browser from a gentle original instrumental arrangement of Pachelbel's public-domain composition, in `src/canonScore.js` and `src/canonPlayer.js`. It needs no external recording or audio download. Playback starts inside the Begin button's user gesture, never on page load. The floating music control pauses/resumes the player. Opening a favorite song or playing a cinema video pauses the background music.
+Canon in D is played directly by the browser from a gentle original instrumental arrangement of Pachelbel's public-domain composition, in `src/canonScore.js` and `src/canonPlayer.js`. It needs no external recording or audio download. Playback starts inside the Begin button's user gesture, never on page load. The floating music control pauses/resumes the player. Opening a favorite song pauses Canon; resuming Canon or opening a cinema film closes the song iframe to prevent overlapping audio. Opening an embedded cinema video pauses Canon as well.
 
 ### Adding videos
 
@@ -150,7 +153,7 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - A closed envelope sealed with R. & D. replaces the finale button; opening it reveals the final message and a bouquet of her favorite tulips and sunflowers, with small daisies and greenery
 - The bouquet sways and its blooms move subtly; reduced motion disables these animations. It rests diagonally across the letter's lower-right edge. The complete final letter, signature, and bouquet fit the visible viewport without scrolling, adjusting to mobile browser bars and rotation; the close button keeps its full touch size
 - The hero-only cover opens with an outward photo burst and user-initiated Canon in D, with play/pause available while reading
-- The soundtrack is presented as a cassette sleeve and handwritten tracklist for the three favorite songs; their links open Spotify search, while the floating Canon control manages the background arrangement
+- The soundtrack is presented as a cassette sleeve and handwritten tracklist for the three favorite songs; each opens an inline Spotify player, while the floating Canon control manages the background arrangement
 - Cinema cards use perforated ticket layouts, filmstrip previews, and keepsake numbers
 - Year two has a vertical photo-booth strip; year three has paired, tilted snapshots
 - Memory photos open in a paper-framed album with captions and accessible navigation
