@@ -60,7 +60,7 @@ test('memory notes expand and fold away', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.memory-card')).toHaveCount(9);
   const memory = page.locator('.memory-card').first();
-  const toggle = memory.getByRole('button');
+  const toggle = memory.locator('.confession-toggle');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   const note = memory.getByRole('region');
@@ -70,7 +70,7 @@ test('memory notes expand and fold away', async ({ page }) => {
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(note).toHaveCount(0);
   const darkMemory = page.locator('#chapter-two .memory-card').first();
-  const darkToggle = darkMemory.getByRole('button');
+  const darkToggle = darkMemory.locator('.confession-toggle');
   await darkToggle.focus();
   await darkToggle.press('Enter');
   await expect(darkToggle).toHaveAttribute('aria-expanded', 'true');
@@ -88,6 +88,7 @@ test('every letter and the finale open, reveal their P.S., and close', async ({ 
     await envelope.click();
     const dialog = page.getByRole('dialog', { name: title, exact: true });
     await expect(dialog).toBeVisible();
+    await expect(dialog.locator('.letter-seal')).toHaveText('R. & D.');
     await expect(dialog.getByRole('button', { name: 'Close letter' })).toBeFocused();
     await dialog.getByRole('button', { name: 'P.S. One more thing...' }).click();
     await expect(dialog.locator('.postscript')).toBeVisible();
@@ -100,6 +101,7 @@ test('every letter and the finale open, reveal their P.S., and close', async ({ 
   await page.getByRole('button', { name: "Here's to Forever" }).click();
   const finale = page.getByRole('dialog', { name: 'My Favorite Story Is Us' });
   await expect(finale).toContainText('Happy third anniversary.');
+  await expect(finale.locator('.personal-signature strong')).toHaveText('R. & D.');
   await finale.getByRole('button', { name: 'Close letter' }).click();
   await expect(finale).toHaveCount(0);
 });
@@ -110,7 +112,7 @@ test('both cinema placeholders open and close', async ({ page }) => {
     await page.getByRole('button', { name: new RegExp(title) }).click();
     const dialog = page.getByRole('dialog', { name: title, exact: true });
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('Add your own video source');
+    await expect(dialog).toContainText('This little film is still waiting for its first scene.');
     await dialog.getByRole('button', { name: 'Close video' }).click();
     await expect(dialog).toHaveCount(0);
   }
@@ -239,4 +241,69 @@ test('the finale lights warm up as the final message appears', async ({ page }) 
   await expect(finale).toHaveClass(/has-letter-open/);
   await page.getByRole('button', { name: 'Close letter' }).click();
   await expect(finale).not.toHaveClass(/has-letter-open/);
+});
+
+test('the photo album navigates, traps focus, and returns to its opener', async ({ page }) => {
+  await page.goto('/');
+  const opener = page.locator('#chapter-one .memory-card').first().getByRole('button', { name: /^View photo:/ });
+  await opener.click();
+  const album = page.getByRole('dialog', { name: 'Our photo album' });
+  const close = album.getByRole('button', { name: 'Close photo album' });
+  await expect(album.getByRole('heading')).toHaveText('The day our worlds met');
+  await expect(album.getByRole('status')).toHaveText('Photo 1 of 9');
+  await expect(close).toBeFocused();
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+  await page.keyboard.press('Shift+Tab');
+  await expect(album.getByRole('button', { name: 'Next photo' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(close).toBeFocused();
+  await album.getByRole('button', { name: 'Next photo' }).click();
+  await expect(album.getByRole('heading')).toHaveText('Butterflies, probably');
+  await album.getByRole('button', { name: 'Previous photo' }).click();
+  await expect(album.getByRole('heading')).toHaveText('The day our worlds met');
+  await page.keyboard.press('ArrowLeft');
+  await expect(album.getByRole('heading')).toHaveText('And here we are');
+  await expect(album.getByRole('status')).toHaveText('Photo 9 of 9');
+  await page.keyboard.press('ArrowRight');
+  await expect(album.getByRole('status')).toHaveText('Photo 1 of 9');
+  await page.keyboard.press('Escape');
+  await expect(album).toHaveCount(0);
+  await expect(opener).toBeFocused();
+  expect(await page.evaluate(() => document.body.style.overflow)).toBe('');
+});
+
+test('photo strips and paired snapshots open the corresponding memory', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const stripPhoto = page.locator('.photo-booth-strip .photo-open').first();
+  if (testInfo.project.name === 'mobile') await stripPhoto.tap();
+  else await stripPhoto.click();
+  const album = page.getByRole('dialog', { name: 'Our photo album' });
+  await expect(album.getByRole('heading')).toHaveText('Anywhere, as long as it’s you');
+  await expect(album.getByRole('status')).toHaveText('Photo 4 of 9');
+  await album.getByRole('button', { name: 'Close photo album' }).click();
+  await expect(album).toHaveCount(0);
+  const pairedPhoto = page.locator('.snapshot-pair .photo-open').nth(1);
+  if (testInfo.project.name === 'mobile') await pairedPhoto.tap();
+  else await pairedPhoto.click();
+  await expect(album.getByRole('heading')).toHaveText('Home looks a lot like you');
+  await expect(album.getByRole('status')).toHaveText('Photo 8 of 9');
+  await album.getByRole('button', { name: 'Close photo album' }).click();
+  await expect(album).toHaveCount(0);
+  await expect(pairedPhoto).toBeFocused();
+});
+
+test('ribbon bookmarks follow the chapter and navigate between years', async ({ page }) => {
+  await page.goto('/');
+  const bookmarks = page.getByRole('navigation', { name: 'Chapter bookmarks', includeHidden: true });
+  await expect(bookmarks).toBeHidden();
+  await page.locator('#chapter-one').scrollIntoViewIfNeeded();
+  await expect(bookmarks).toBeVisible();
+  await expect(bookmarks.getByRole('link', { name: 'Chapter 1: The Beginning' })).toHaveAttribute('aria-current', 'location');
+  await bookmarks.getByRole('link', { name: 'Chapter 3: Still You' }).click();
+  await expect(page).toHaveURL(/#chapter-three$/);
+  await expect(bookmarks.getByRole('link', { name: 'Chapter 3: Still You' })).toHaveAttribute('aria-current', 'location');
+  await page.locator('#chapter-two').scrollIntoViewIfNeeded();
+  await expect(bookmarks.getByRole('link', { name: 'Chapter 2: Becoming Us' })).toHaveAttribute('aria-current', 'location');
+  await page.locator('#finale').scrollIntoViewIfNeeded();
+  await expect(bookmarks).toBeHidden();
 });

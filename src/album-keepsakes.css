@@ -1,0 +1,145 @@
+/* A photo viewer that feels like another page in the album. */
+.photo-open { position: absolute; z-index: 4; inset: 0; width: 100%; border: 0; padding: 10px; display: flex; align-items: flex-end; justify-content: flex-end; color: #fff4e9; background: transparent; }
+.photo-open:focus-visible { outline: 2px solid #f6d5b2; outline-offset: -5px; }
+.photo-open-hint { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid #f5d6b36b; border-radius: 2px; font-size: 10px; background: #2b1b25c4; opacity: 0; transform: translateY(4px); transition: opacity .2s, transform .2s; }
+.photo-open:hover .photo-open-hint, .photo-open:focus-visible .photo-open-hint { opacity: 1; transform: none; }
+.photo-album-shade { z-index: 60; }
+.photo-album { position: relative; width: min(100%, 880px); max-height: 92svh; overflow-y: auto; overscroll-behavior: contain; background: #f6e9d7; color: #5d3d44; padding: 26px 25px 15px; border: 1px solid #d2b69b; box-shadow: 0 20px 90px #0906099c; }
+.album-eyebrow { display: block; margin: 0 32px 16px 0; font-size: 8px; letter-spacing: 2px; color: #9a6768; }
+.photo-album figure { margin: 0; }
+.photo-album .album-photo { height: min(52svh, 530px); background: #e6d6c3; }
+.photo-album .album-photo > img { object-fit: contain; }
+.photo-album .album-photo .photo-fallback { min-height: 100%; }
+.photo-album figcaption { padding: 16px 8px 8px; text-align: center; }
+.album-date { display: block; font-family: 'Caveat', cursive; font-size: 22px; color: #a66b72; }
+.photo-album h2 { font-family: 'Caveat', cursive; font-size: clamp(29px, 5vw, 44px); font-weight: 500; line-height: 1.1; margin: 7px 0; }
+.photo-album figcaption p { font-size: 12px; line-height: 1.7; max-width: 560px; margin: 0 auto; }
+.album-controls { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px dashed #ba988479; }
+.album-controls button { display: flex; align-items: center; gap: 5px; min-height: 44px; border: 0; padding: 5px; color: #8d5664; background: none; font-family: 'Caveat', cursive; font-size: 22px; }
+.album-controls button:disabled { opacity: .4; cursor: default; }
+.album-controls [role=status] { font-size: 9px; letter-spacing: 1px; color: #947578; }
+
+/* A real scroll position is marked by the ribbon; it disappears outside the story. */
+.chapter-bookmarks { position: fixed; z-index: 14; right: 16px; top: 38%; display: flex; flex-direction: column; gap: 8px; }
+.chapter-bookmarks[hidden] { display: none; }
+.chapter-bookmarks a { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; width: 43px; min-height: 72px; padding: 10px 4px 17px; color: #ead6c4; background: #6c4857ed; clip-path: polygon(0 0,100% 0,100% 100%,50% 87%,0 100%); box-shadow: inset 3px 0 #ad7b8580, inset -3px 0 #ad7b8580; transition: background .2s, transform .2s; }
+.chapter-bookmarks a[aria-current] { color: #fff2df; background: #a15e71; transform: translateX(-4px); }
+.chapter-bookmarks a:focus-visible { outline: 0; box-shadow: inset 0 0 0 3px #f3cdab; }
+.bookmark-year { font-size: 6px; letter-spacing: 1.2px; }
+.bookmark-number { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 25px; line-height: 1; }
+
+/* Film strips and two snapshots interrupt the full-width chapter photographs. */
+.chapter-keepsakes { display: flex; align-items: center; justify-content: center; gap: 65px; max-width: 830px; margin: 45px auto 78px; padding: 20px 20px 10px; }
+.photo-booth-strip { position: relative; flex: 0 0 216px; padding: 18px 15px 12px; background: #f1e4ce; color: #69514f; box-shadow: 7px 14px 30px #06040966; transform: rotate(-4deg); }
+.photo-booth-strip::before { content: ''; position: absolute; top: -9px; left: 24%; width: 100px; height: 22px; background: #d4b98b85; transform: rotate(7deg); }
+.keepsake-frame { margin: 0; }
+.photo-booth-strip .keepsake-frame + .keepsake-frame { margin-top: 7px; }
+.photo-booth-strip .photo { aspect-ratio: 1.45; }
+.photo-booth-strip figcaption { padding: 4px 2px 2px; font-size: 7px; letter-spacing: 1.5px; }
+.booth-strip-label { display: block; margin-top: 10px; text-align: center; font-family: 'Caveat', cursive; font-size: 20px; }
+.photo-booth-strip .sample-tag { font-size: 6px; padding: 4px 5px; bottom: 5px; left: 5px; }
+.photo-booth-strip .photo-open-hint { font-size: 0; gap: 0; padding: 5px; }
+.booth-scribble { max-width: 310px; padding: 30px 24px 24px; background: #ead7b8; color: #805763; box-shadow: 0 7px 20px #0003; transform: rotate(3deg); background-image: repeating-linear-gradient(transparent 0 31px, #a7856940 31px 32px); }
+.booth-scribble > span:first-child { display: block; margin-bottom: 20px; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; }
+.booth-scribble p { font-family: 'Caveat', cursive; font-size: 31px; line-height: 1.1; }
+.booth-heart { display: block; text-align: right; margin-top: 20px; font-family: 'Caveat', cursive; font-size: 42px; }
+.paired-snapshots { max-width: 790px; margin: 40px auto 80px; padding: 15px 24px 35px; }
+.snapshot-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px; align-items: start; }
+.snapshot-pair .keepsake-frame { padding: 11px 11px 18px; background: #fff8ed; box-shadow: 0 12px 28px #5d443b38; transform: rotate(-4deg); }
+.snapshot-pair .keepsake-frame:nth-child(2) { transform: translateY(32px) rotate(5deg); }
+.snapshot-pair .photo { aspect-ratio: .9; }
+.snapshot-pair figcaption { padding-top: 15px; font-family: 'Caveat', cursive; font-size: clamp(21px,3vw,31px); line-height: 1.1; color: #985d68; text-align: center; }
+
+/* Cassette art and a handwritten tracklist, without pretending to play audio. */
+.mixtape-keepsake { position: relative; width: min(100%, 420px); margin: 65px auto 50px; padding: 36px 18px 15px; }
+.cassette-sleeve { position: absolute; inset: -10px 15px 16px -8px; padding: 13px 18px; border: 1px solid #c49a85; background: #e2bca2; color: #734758; transform: rotate(-6deg); box-shadow: 0 12px 25px #0004; }
+.cassette-sleeve > span { font-size: 7px; letter-spacing: 2px; }
+.cassette-sleeve strong { display: block; margin-top: 5px; font-family: 'Caveat', cursive; font-size: 26px; font-weight: 400; }
+.cassette { position: relative; margin-top: 30px; padding: 15px 17px 12px; border: 3px solid #654e4c; border-radius: 9px; background: linear-gradient(155deg,#a17870,#735356); box-shadow: inset 0 1px 0 #e3c7b578, 0 8px 18px #0004; transform: rotate(3deg); }
+.cassette-label { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 8px; color: #74505a; background: #f2dfc2; border: 1px solid #bc8c7c; border-radius: 3px 3px 0 0; }
+.cassette-label > span { font-size: 8px; font-weight: 700; }
+.cassette-label strong { font-family: 'Caveat', cursive; font-size: 25px; font-weight: 500; }
+.cassette-window { display: flex; align-items: center; justify-content: space-around; padding: 10px 15px; background: #3e3035; border: 6px solid #ecceaf; border-top: 0; border-radius: 0 0 4px 4px; }
+.cassette-window i { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 50%; border: 10px dashed #bba995; background: #e8d7bd; box-shadow: 0 0 0 6px #66514d; }
+.cassette-window > span { height: 25px; width: 40%; margin: 0 12px; background: linear-gradient(#8a6e5d,#544438); border: 1px solid #b89b7a44; }
+.cassette-base { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px auto 0; width: 80%; padding: 8px 14px 0; border: 1px solid #b5978055; border-bottom: 0; color: #e7cdb7; font-size: 6px; letter-spacing: 1.7px; }
+.cassette-base i { flex: 0 0 8px; height: 8px; border-radius: 50%; background: #4b3940; box-shadow: inset 0 0 0 2px #9f8174; }
+.mixtape-tracklist { position: relative; padding: 24px 26px 20px; background: #f1e3cd; color: #6e4850; box-shadow: 0 12px 30px #0005; transform: rotate(-.6deg); }
+.mixtape-tracklist::before { content: ''; position: absolute; width: 84px; height: 20px; top: -10px; right: 12%; transform: rotate(5deg); background: #cbb58a8c; }
+.tracklist-heading { display: flex; justify-content: space-between; gap: 14px; padding-bottom: 14px; font-size: 7px; line-height: 1.6; letter-spacing: 1.4px; color: #9a6a6b; }
+.mixtape-tracklist .song-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #b99a81; }
+.mixtape-tracklist .song { grid-template-columns: 27px minmax(0,1fr) 34px; gap: 10px; border-color: #c1a98d9c; }
+.mixtape-tracklist .song-index { color: #b17378; }
+.mixtape-tracklist .song-details h3 { font-size: 32px; }
+.mixtape-tracklist .song-details p { color: #94736e; }
+.mixtape-tracklist .song-details small { color: #9a686a; font-family: 'Caveat', cursive; font-size: 21px; line-height: 1.25; margin-top: 9px; }
+.mixtape-tracklist .song-play, .mixtape-tracklist .song-pending { color: #985c6c; border-color: #bd9291; }
+.tracklist-signoff { display: block; margin-top: 20px; text-align: right; font-family: 'Caveat', cursive; font-size: 23px; color: #a16b70; }
+
+/* Ticket stubs with filmstrip previews, perforations, and keepsake numbers. */
+.cinema-section .cinema-list { display: grid; grid-template-columns: minmax(0,1fr); gap: 28px; max-width: 850px; margin: 0 auto; }
+.cinema-section .cinema-card { position: relative; grid-column: auto; width: 100%; margin: 0; padding: 0; border: 1px solid #c79783; border-radius: 3px; background: #edd2b1; color: #704750; box-shadow: 0 12px 25px #0003; }
+.cinema-card::before, .cinema-card::after { content: ''; position: absolute; z-index: 3; top: calc(50% - 10px); width: 20px; height: 20px; border-radius: 50%; background: #130d14; }
+.cinema-card::before { left: -11px; }
+.cinema-card::after { right: -11px; }
+.ticket-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #bd8e797a; color: #9b6b6c; font-size: 8px; letter-spacing: 1.7px; }
+.ticket-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) 63px; align-items: stretch; }
+.ticket-layout .cinema-thumb { display: block; position: relative; height: auto; min-height: 190px; aspect-ratio: 1.3; margin: 18px 0 18px 18px; border-block: 9px solid #382931; }
+.ticket-layout .cinema-thumb::after { content: ''; position: absolute; inset: -6px 5px; border-block: 3px dashed #ddc6ac; pointer-events: none; }
+.ticket-layout .cinema-thumb .photo { height: 100%; }
+.ticket-layout .big-play { width: 48px; height: 48px; background: #3a2635b0; }
+.ticket-details { display: flex; flex-direction: column; justify-content: center; padding: 24px 20px; }
+.ticket-title { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(30px,4vw,43px); line-height: 1; margin: 9px 0; }
+.ticket-subtitle { display: block; font-family: 'Caveat', cursive; font-size: 23px; line-height: 1.2; color: #a57471; }
+.ticket-details .cinema-link { margin: 20px 0 0; font-size: 9px; color: #91596a; }
+.ticket-stub { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; border-left: 2px dashed #bd8e797a; padding: 20px 7px; color: #a46b70; }
+.ticket-stub > span:first-child { writing-mode: vertical-rl; font-size: 7px; letter-spacing: 2px; }
+.ticket-stub strong { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 25px; font-weight: 500; }
+.ticket-barcode { display: block; width: 33px; height: 35px; background: repeating-linear-gradient(90deg, #9b6f6f 0 1px,transparent 1px 3px,#9b6f6f 3px 5px,transparent 5px 7px); opacity: .6; }
+
+.seal-mark.is-monogram { font-family: 'Caveat', cursive; font-weight: 500; white-space: nowrap; letter-spacing: -.4px; }
+.wax-seal .seal-mark.is-monogram { font-size: 15px; }
+.envelope-illustration .seal-mark.is-monogram { width: 29px; height: 29px; font-size: 9px; top: 18px; border: 2px double #deb3a4; }
+.letter-seal .seal-mark { display: inline-grid; place-items: center; min-width: 58px; height: 58px; padding: 6px; border-radius: 48% 52% 46% 54%; border: 3px double #d9968f; background: radial-gradient(circle at 35% 30%, #b96476, #793448); color: #f2c9b9; font-size: 16px; }
+.personal-signature { position: relative; padding: 20px 75px 5px 0; margin-top: 22px; color: #a1666a; }
+.personal-signature > span:first-child { display: block; font-family: 'Caveat', cursive; font-size: 24px; }
+.personal-signature strong { display: block; font-family: 'Caveat', cursive; font-size: 38px; font-weight: 400; margin-top: 5px; }
+.personal-signature .seal-mark { position: absolute; right: 0; bottom: 10px; display: grid; place-items: center; width: 58px; height: 58px; border: 2px double #ba8285; border-radius: 50%; color: #a1666a; font-size: 17px; transform: rotate(-9deg); }
+
+@media (max-width: 1100px) { .chapter-bookmarks { right: 4px; } }
+@media (max-width: 700px) {
+  .photo-open-hint { opacity: 1; transform: none; font-size: 9px; }
+  .photo-album { padding: 23px 13px 12px; }
+  .photo-album .album-photo { height: 42svh; }
+  .album-controls button { font-size: 20px; }
+  .album-controls [role=status] { font-size: 8px; }
+  .chapter-bookmarks { top: auto; bottom: max(12px,env(safe-area-inset-bottom)); left: 50%; right: auto; transform: translateX(-50%); flex-direction: row; gap: 8px; padding: 6px 8px 4px; border-radius: 7px; background: #2a1924bf; backdrop-filter: blur(12px); }
+  .chapter-bookmarks a { width: 45px; min-height: 48px; padding: 6px 4px 10px; gap: 1px; }
+  .chapter-bookmarks a[aria-current] { transform: translateY(-3px); }
+  .bookmark-year { font-size: 5px; }
+  .bookmark-number { font-size: 21px; }
+  .chapter-keepsakes { flex-direction: column; gap: 35px; padding: 12px 16px 10px; margin-bottom: 70px; }
+  .photo-booth-strip { flex-basis: auto; width: 195px; }
+  .booth-scribble { max-width: 260px; }
+  .booth-scribble p { font-size: 27px; }
+  .paired-snapshots { padding: 15px 8px 30px; }
+  .snapshot-pair { gap: 8px; }
+  .snapshot-pair .keepsake-frame { padding: 6px 6px 12px; }
+  .snapshot-pair figcaption { padding-top: 10px; font-size: 20px; }
+  .snapshot-pair .photo-open-hint { font-size: 0; gap: 0; padding: 5px; }
+  .snapshot-pair .sample-tag { font-size: 5px; padding: 4px; bottom: 5px; left: 5px; }
+  .mixtape-keepsake { padding-inline: 7px; }
+  .cassette-label strong { font-size: 22px; }
+  .cassette-window { padding-inline: 8px; }
+  .cassette-window i { width: 36px; height: 36px; flex-basis: 36px; border-width: 8px; }
+  .cassette-base { width: 90%; font-size: 5px; }
+  .mixtape-tracklist { padding-inline: 18px; }
+  .tracklist-heading { font-size: 6px; letter-spacing: 1px; }
+  .mixtape-tracklist .song-details h3 { font-size: 29px; }
+  .ticket-layout { grid-template-columns: minmax(0,1fr) 42px; }
+  .ticket-layout .cinema-thumb { grid-column: 1; margin: 14px 12px 0; min-height: 0; aspect-ratio: 1.45; }
+  .ticket-details { grid-column: 1; padding: 20px 22px 24px; }
+  .ticket-stub { grid-column: 2; grid-row: 1 / span 2; padding: 12px 4px; }
+  .ticket-header { padding-inline: 15px; font-size: 6px; letter-spacing: 1.2px; }
+  .ticket-barcode { width: 24px; }
+}

@@ -82,19 +82,22 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Site title and dedication | `settings` |
 | Hero/finale photo, alt text, and crop | `settings.heroImage`, `settings.heroImageAlt`, `settings.heroImagePosition` |
 | Days together and calendar timezone | `settings.relationshipStartDate`, `settings.timeZone` |
+| Seal initials and final signature | `settings.monogram`, `settings.signature` |
 | Three years and their memories | `chapters[].memories` |
 | Song names, artist, listen URL | `songs` |
 | Cinema videos and cover images | `films` |
 | The four envelopes and secret P.S. | `letters` |
 | Final love letter | `finale` |
 | Demo photographs and memory image fallback | `demo` in `src/App.jsx` |
-| Layout, colors, fonts, textures and motion | `src/styles.css` |
+| Layout, colors, fonts, textures and motion | `src/styles.css` and the feature CSS files imported by `src/main.jsx` |
 
 ### Replacing a photo
 
 The opening and finale share `settings.heroImage`; leave it empty to keep the labeled illustrative sunset photo. Set `settings.heroImageAlt` and adjust `settings.heroImagePosition` to keep your subject in the crop. The opening adds a sunset tint, vignette, and fine film texture.
 
 In `src/content.js`, set each memory's `image` to a valid, accessible URL, e.g. `image: "/media/my-memory.webp"` **only when the site is secured and the photo is not private**. For personal media, prefer an authenticated asset endpoint backed by private Cloudflare R2, then reference those protected URLs. For now, blank `image` values use illustrative photos, with a **SAMPLE PHOTO** label.
+
+Memory photographs, chapter photos, the year-two photo-booth strip, and year-three paired snapshots open the shared album viewer. It uses the memory title, date label, description, and optional `memory.alt` text. The viewer supports previous/next buttons, left/right arrow keys, Escape, focus trapping, and focus restoration. Overview Polaroids keep their separate note-reveal interaction.
 
 ### Adding music
 
@@ -107,6 +110,8 @@ Set `films[].src` to an accessible video URL and optionally `films[].poster` to 
 ### Editing letters
 
 Update `letters[].body` (array of paragraphs), `letters[].ps`, and `finale.letter`. These sample letters are intentionally generic.
+
+The seals and final-letter signature use **R. & D.**, configured by `settings.monogram` and `settings.signature`. An empty monogram falls back to the heart seal; an empty signature uses the monogram beneath the existing `finale.signature` closing line.
 
 ### Anniversary counter
 
@@ -124,6 +129,12 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - Botanical rose corners and handwritten memory labels carry the scrapbook theme through the chapters
 - Letters open with an unfolding envelope, lifted wax seal, and sliding paper; reduced motion skips the sequence
 - The finale gradually warms its lighting as it enters view, with an extra glow around the last letter
+- The soundtrack is presented as a cassette sleeve and handwritten tracklist; linked songs still open their original provider
+- Cinema cards use perforated ticket layouts, filmstrip previews, and keepsake numbers
+- Year two has a vertical photo-booth strip; year three has paired, tilted snapshots
+- Memory photos open in a paper-framed album with captions and accessible navigation
+- Ribbon bookmarks follow the current year and link between chapters; mobile uses a compact bottom ribbon bar
+- R. & D. monograms personalize the wax seals and final signature
 - Image lazy loading except the first hero image and graceful media fallbacks
 
 ## Safety and privacy
@@ -145,6 +156,6 @@ On Linux, `npx playwright install --with-deps chromium` can install the browser'
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test
 ```
 
-The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, Polaroid interactions, letter animation and keyboard focus, finale lighting, cinema placeholders, falling roses and scroll direction, reduced motion, the anniversary counter across Manila midnight, and JavaScript errors. Date arithmetic also has Node.js tests for leap days, timezone boundaries, and invalid dates. Browser tests deliberately block optional external images and fonts to check graceful fallback behavior. Personal song links and video playback require your own media in `src/content.js` and are not covered by placeholder tests.
+The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, Polaroid interactions, photo album navigation/focus/wrapping, photo-strip and snapshot entry points, active chapter ribbons, monograms/signatures, letter animation and keyboard focus, finale lighting, cinema placeholders, falling roses and scroll direction, reduced motion, the anniversary counter across Manila midnight, and JavaScript errors. Date arithmetic also has Node.js tests for leap days, timezone boundaries, and invalid dates. Browser tests deliberately block optional external images and fonts to check graceful fallback behavior. Personal song links and video playback require your own media in `src/content.js` and are not covered by placeholder tests.
 
 GitHub Actions installs with `npm ci`, builds the site, runs this suite, and uploads the successful `dist/` build as the `anniversary-site` artifact. This workflow validates the site; Cloudflare's Git integration handles deployment. Inspect the real Cloudflare deployment log and test on a phone before sharing the final site.

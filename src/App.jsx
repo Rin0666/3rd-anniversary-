@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowDown, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
@@ -8,6 +8,10 @@ import { settings, chapters, songs, films, letters, finale } from "./content";
 import FallingRoses from "./FallingRoses";
 import AnniversaryCounter from "./AnniversaryCounter";
 import FloralSprig from "./FloralSprig";
+import Photo from "./Photo";
+import PhotoAlbum, { usePhotoAlbum } from "./PhotoAlbum";
+import ChapterBookmarks from "./ChapterBookmarks";
+import useDialog from "./useDialog";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -31,6 +35,12 @@ const demoMemoryImages = {
   home: demo.firstDate,
   today: demo.three
 };
+const memoryImage = memory => memory.image || demoMemoryImages[memory.id] || demo.one;
+const albumPhotos = chapters.flatMap(chapter => chapter.memories.map(memory => ({
+  id: memory.id, src: memoryImage(memory), title: memory.title, date: memory.date,
+  caption: memory.description, sample: !memory.image,
+  alt: memory.image ? (memory.alt || memory.title) : `Illustrative photo for ${memory.title}`
+})));
 const reveal = {
   initial: { opacity: 0, y: 22 },
   whileInView: { opacity: 1, y: 0 },
@@ -38,19 +48,8 @@ const reveal = {
   transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] }
 };
 
-function Photo({ src, alt, className = "", eager = false, children, sample = false }) {
-  const [broken, setBroken] = useState(false);
-  useEffect(() => setBroken(false), [src]);
-  return (
-    <div className={"photo " + className}>
-      {src && !broken ? (
-        <img src={src} alt={alt || "Romantic photograph"} loading={eager ? "eager" : "lazy"}
-          fetchPriority={eager ? "high" : undefined} decoding="async" onError={() => setBroken(true)} />
-      ) : <div className="photo-fallback"><Heart size={30} strokeWidth={1} /><span>Add your photo</span></div>}
-      {sample && <span className="sample-tag">SAMPLE PHOTO</span>}
-      {children}
-    </div>
-  );
+function SealMark() {
+  return <span className={"seal-mark" + (settings.monogram ? " is-monogram" : "")} aria-hidden="true">{settings.monogram || '♥'}</span>;
 }
 
 function SectionHeading({ number, eyebrow, title, caption, light = false }) {
@@ -171,10 +170,12 @@ function MemoryCard({ memory, index, chapterIndex }) {
   const [secret, setSecret] = useState(false);
   const reducedMotion = useReducedMotion();
   const noteId = `confession-${memory.id}`;
-  const image = memory.image || demoMemoryImages[memory.id] || demo.one;
+  const openPhoto = usePhotoAlbum();
+  const image = memoryImage(memory);
   return <motion.article {...reveal} className={"memory-card memory-card-" + index}>
     <div className="memory-photo-wrap">
-      <Photo src={image} alt={"Illustrative photo for " + memory.title} sample={!memory.image} />
+      <Photo src={image} alt={memory.image ? (memory.alt || memory.title) : "Illustrative photo for " + memory.title}
+        sample={!memory.image} onOpen={() => openPhoto(memory.id)} />
       <div className="tape" aria-hidden="true" />
       <span className="memory-date">{memory.date}</span>
     </div>
@@ -208,8 +209,25 @@ function MemoryCard({ memory, index, chapterIndex }) {
   </motion.article>;
 }
 
+function ChapterKeepsakes({ chapter, paired = false }) {
+  const openPhoto = usePhotoAlbum();
+  const memories = paired ? chapter.memories.slice(0, 2) : chapter.memories.slice(0, 3);
+  return <div className={paired ? "paired-snapshots" : "chapter-keepsakes"}>
+    <div className={paired ? "snapshot-pair" : "photo-booth-strip"}>
+      {memories.map((memory, index) => <figure key={memory.id} className="keepsake-frame">
+        <Photo src={memoryImage(memory)} alt={memory.image ? (memory.alt || memory.title) : `Illustrative photo for ${memory.title}`}
+          sample={!memory.image} onOpen={() => openPhoto(memory.id)} />
+        <figcaption>{paired ? memory.title : `${String(index + 1).padStart(2, '0')} / ${chapter.year}`}</figcaption>
+      </figure>)}
+      {!paired && <span className="booth-strip-label">US, ON REPEAT ♡</span>}
+    </div>
+    {!paired && <div className="booth-scribble"><span>the scenes between the scenes</span><p>“{chapter.quote}”</p><span className="booth-heart" aria-hidden="true">♡</span></div>}
+  </div>;
+}
+
 function Chapter({ chapter, index }) {
   const isDark = index === 1;
+  const openPhoto = usePhotoAlbum();
   return <section id={"chapter-" + chapter.id} className={"story-chapter " + (isDark ? "dark-chapter" : "paper-section") + " chapter-" + chapter.id}>
     <FloralSprig className="floral-corner-top" />
     <FloralSprig className="floral-corner-bottom" />
@@ -218,11 +236,12 @@ function Chapter({ chapter, index }) {
       <motion.div {...reveal} className="chapter-titles"><h2>{chapter.name}</h2><em>{index === 0 ? "The Beginning" : index === 1 ? "Growing Together" : "Still You"}</em></motion.div>
       <motion.p {...reveal} className="chapter-opening">{chapter.intro}</motion.p>
     </div>
-    <div className="chapter-hero-image">
+    {index === 0 ? <div className="chapter-hero-image">
       <Photo src={chapter.memories[0]?.image || [demo.one, demo.two, demo.three][index]}
-        alt={"Illustrative chapter " + (index + 1) + " photograph"} sample={!chapter.memories[0]?.image} />
+        alt={chapter.memories[0]?.image ? chapter.memories[0].title : "Illustrative chapter " + (index + 1) + " photograph"}
+        sample={!chapter.memories[0]?.image} onOpen={chapter.memories[0] ? () => openPhoto(chapter.memories[0].id) : undefined} />
       <div className="chapter-image-caption">CHAPTER {index + 1} <span>·</span> {chapter.year}</div>
-    </div>
+    </div> : <ChapterKeepsakes chapter={chapter} paired={index === 2} />}
     {index === 1 && <div className="chapter-tags"><span>ALL MEMORIES</span><span>ADVENTURES</span><span>LAUGHTER</span><span>LITTLE THINGS</span></div>}
     {index === 2 && <div className="paper-note"><span>THE LITTLE THINGS</span><p>Our morning texts<br/>Our late night talks<br/>Finding comfort in silence<br/>Still choosing each other</p><i>♡</i></div>}
     <div className="memory-stream">{chapter.memories.map((m, i) => <MemoryCard key={m.id} memory={m} index={i} chapterIndex={index} />)}</div>
@@ -235,47 +254,26 @@ function Chapter({ chapter, index }) {
 function Soundtrack() {
   return <section className="soundtrack-section" id="soundtrack">
     <SectionHeading number="04" eyebrow="SONGS THAT TELL OUR STORY" title="Our Soundtrack" caption="Some songs take you right back to a moment. These are ours." />
-    <div className="record-scene">
-      <div className="record-cover"><Photo src={demo.sunset} alt="Illustrative sunset for the soundtrack cover" sample /></div>
-      <div className="vinyl" aria-hidden="true"><span /></div>
+    <div className="mixtape-keepsake" aria-hidden="true">
+      <div className="cassette-sleeve"><span>A MIXTAPE FOR US</span><strong>Our songs, on repeat.</strong></div>
+      <div className="cassette">
+        <div className="cassette-label"><span>SIDE A</span><strong>three years of us</strong><span>♡</span></div>
+        <div className="cassette-window"><i /><span /><i /></div>
+        <div className="cassette-base"><i /><span>MADE WITH LOVE</span><i /></div>
+      </div>
     </div>
-    <div className="song-list">{songs.map((song, i) => <motion.div {...reveal} className="song" key={song.id}>
+    <div className="mixtape-tracklist">
+      <div className="tracklist-heading"><span>SIDE A / THE FAVORITES</span><span>LOVE, ON REPEAT ♡</span></div>
+      <ol className="song-list">{songs.map((song, i) => <motion.li {...reveal} className="song" key={song.id}>
       <span className="song-index">0{i + 1}</span>
       <div className="song-details"><h3>{song.title}</h3><p>{song.artist}</p><small>{song.note}</small></div>
-      {song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" aria-label={"Open " + song.title}><Play size={18}/></a>
-        : <span className="song-pending" title="Add the song link in src/content.js"><Music2 size={17}/></span>}
-    </motion.div>)}</div>
-    <p className="small-note">Add your favorite songs in src/content.js. Licensed music opens in its original player.</p>
+      {song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" aria-label={"Open " + song.title}><ExternalLink size={17}/></a>
+        : <span className="song-pending" title="Song link coming soon"><Music2 size={17}/></span>}
+      </motion.li>)}</ol>
+      <span className="tracklist-signoff">a few songs to carry us back.</span>
+    </div>
+    <p className="small-note">Songs open in their original music player. Some links are still waiting for their first listen.</p>
   </section>;
-}
-
-function useDialog(isOpen, onClose) {
-  const closeRef = useRef(null);
-  const priorFocus = useRef(null);
-  const onCloseRef = useRef(onClose);
-  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
-  useEffect(() => {
-    if (!isOpen) return;
-    priorFocus.current = document.activeElement;
-    const oldOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
-    const keyDown = (e) => {
-      if (e.key === "Escape") onCloseRef.current();
-      if (e.key === "Tab") {
-        const modal = closeRef.current?.closest('[role="dialog"]');
-        if (!modal) return;
-        const nodes = [...modal.querySelectorAll('button:not([disabled]),a[href],video[controls]')];
-        if (!nodes.length) return;
-        const first = nodes[0], last = nodes[nodes.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    };
-    window.addEventListener("keydown", keyDown);
-    return () => { document.body.style.overflow = oldOverflow; window.removeEventListener("keydown", keyDown); priorFocus.current?.focus?.(); };
-  }, [isOpen]);
-  return closeRef;
 }
 
 function LetterModal({ letter, onClose, isFinal = false }) {
@@ -293,7 +291,7 @@ function LetterModal({ letter, onClose, isFinal = false }) {
           transition={{ duration: reducedMotion ? 0 : 0.5, delay: reducedMotion ? 0 : 0.1 }} />
         <div className="opening-envelope-front" />
         <motion.span className="wax-seal" variants={{ sealed: { y: 0, opacity: 1, scale: 1 }, opened: { y: -28, opacity: 0, scale: 0.8 } }}
-          transition={{ duration: reducedMotion ? 0 : 0.3 }}>♥</motion.span>
+          transition={{ duration: reducedMotion ? 0 : 0.3 }}><SealMark /></motion.span>
       </motion.div>
       <motion.div className="letter-modal" variants={{ sealed: { y: 65, opacity: 0, scale: 0.96 }, opened: { y: 0, opacity: 1, scale: 1 } }}
         transition={{ duration: reducedMotion ? 0 : 0.55, delay: reducedMotion ? 0 : 0.4 }}>
@@ -302,7 +300,8 @@ function LetterModal({ letter, onClose, isFinal = false }) {
       <h2>{letter.title}</h2>
       {letter.body.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
       {letter.ps && <><button className="ps-trigger" onClick={() => setShowPS(!showPS)}>{showPS ? "Hide P.S." : "P.S. One more thing..."} ♡</button>{showPS && <p className="postscript">{letter.ps}</p>}</>}
-      <div className="letter-seal">♥</div>
+      {isFinal ? <div className="personal-signature"><span>{finale.signature}</span><strong>{settings.signature || settings.monogram}</strong><SealMark /></div>
+        : <div className="letter-seal"><SealMark /></div>}
       </motion.div>
     </motion.div>
   </motion.div>;
@@ -314,7 +313,7 @@ function LetterVault() {
     <FloralSprig className="floral-corner-top" />
     <SectionHeading light number="05" eyebrow="WORDS FOR EVERY VERSION OF YOU" title="Letters to You" caption="A few things I have always wanted you to know. Choose an envelope." />
     <div className="envelope-list">{letters.map((letter, i) => <motion.button {...reveal} className="envelope-row" key={letter.id} onClick={() => setActive(letter)}>
-      <span className="envelope-illustration"><Mail size={33} strokeWidth={1.2}/><span>♥</span></span>
+      <span className="envelope-illustration"><Mail size={33} strokeWidth={1.2}/><SealMark /></span>
       <span className="envelope-details"><strong>{letter.title}</strong><small>{letter.caption}</small></span>
       <ChevronRight size={19} strokeWidth={1.5}/>
     </motion.button>)}</div>
@@ -330,15 +329,20 @@ function Cinema() {
   return <section className="cinema-section" id="cinema">
     <SectionHeading number="06" eyebrow="PRESS PLAY ON OUR FAVORITE MOMENTS" title="Our Little Cinema" caption="Some memories are better in motion. Even the embarrassing ones."/>
     <div className="cinema-list">{films.map((film, i) => <motion.button {...reveal} className={"cinema-card cinema-card-" + i} key={film.id} onClick={() => setActive(film)}>
-      <div className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={"Illustrative preview for " + film.title} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></div>
-      <span className="eyebrow">FILM 0{i + 1}</span><h3>{film.title}</h3><p>{film.subtitle}</p>
-      <span className="cinema-link">{film.src ? "Watch this memory" : "Preview this section"} <ArrowRight size={15}/></span>
+      <span className="ticket-header"><span>OUR LITTLE CINEMA</span><span>ADMIT TWO ♡</span></span>
+      <span className="ticket-layout">
+        <span className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={"Illustrative preview for " + film.title} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></span>
+        <span className="ticket-details"><span className="eyebrow">FILM 0{i + 1}</span><span className="ticket-title">{film.title}</span><span className="ticket-subtitle">{film.subtitle}</span>
+          <span className="cinema-link">{film.src ? "Watch this memory" : "Preview this film"} <ArrowRight size={15}/></span>
+        </span>
+        <span className="ticket-stub" aria-hidden="true"><span>KEEPSAKE</span><strong>00{i + 1}</strong><span className="ticket-barcode" /><span>♥</span></span>
+      </span>
     </motion.button>)}</div>
     <AnimatePresence>{active && <motion.div className="modal-shade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onMouseDown={e => { if (e.target === e.currentTarget) setActive(null); }}>
       <div className="cinema-modal" role="dialog" aria-modal="true" aria-label={active.title}>
         <button ref={closeRef} className="modal-close" onClick={() => setActive(null)} aria-label="Close video"><X size={20}/></button>
-        {active.src ? <video key={active.src} controls playsInline src={active.src} poster={active.poster || undefined} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>Add your own video source in src/content.js to complete this memory.</p></div>}
+        {active.src ? <video key={active.src} controls playsInline src={active.src} poster={active.poster || undefined} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>This little film is still waiting for its first scene.</p></div>}
       </div>
     </motion.div>}</AnimatePresence>
   </section>;
@@ -363,14 +367,14 @@ function Finale() {
       <button className="primary-button" onClick={() => setShow(true)}>Here's to Forever <Heart size={16}/></button>
     </motion.div>
     <div className="finale-bottom"><span>THE END OF CHAPTER THREE</span><h3>{settings.closing}</h3><p>{settings.subclosing}</p><a href="#home">Relive our story <RotateCcw size={15}/></a></div>
-    <AnimatePresence>{show && <LetterModal letter={{title:"My Favorite Story Is Us",body:finale.letter,ps:finale.signature}} isFinal onClose={() => setShow(false)}/>}</AnimatePresence>
+    <AnimatePresence>{show && <LetterModal letter={{title:"My Favorite Story Is Us",body:finale.letter}} isFinal onClose={() => setShow(false)}/>}</AnimatePresence>
   </motion.section>;
 }
 
 export default function App() {
-  return <MotionConfig reducedMotion="user"><div className="site"><FallingRoses /><Header /><main><Hero /><Overview />
+  return <MotionConfig reducedMotion="user"><PhotoAlbum photos={albumPhotos}><div className="site"><FallingRoses /><Header /><ChapterBookmarks /><main><Hero /><Overview />
     {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
     <Soundtrack /><LetterVault /><Cinema /><Finale /></main>
     <footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">BACK TO THE BEGINNING ↑</a></footer>
-  </div></MotionConfig>;
+  </div></PhotoAlbum></MotionConfig>;
 }

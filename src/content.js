@@ -6,7 +6,9 @@ export const settings={
  // Set your actual relationship start date (YYYY-MM-DD) to enable the day counter.
  relationshipStartDate:'2023-11-01',timeZone:'Asia/Manila',
  // An empty image keeps the labeled illustrative photo until your own is ready.
- heroImage:'',heroImageAlt:'Our favorite moment together',heroImagePosition:'center 42%'
+ heroImage:'',heroImageAlt:'Our favorite moment together',heroImagePosition:'center 42%',
+ // Initials for the wax seals and a name beneath the final letter.
+ monogram:'R. & D.',signature:'R. & D.'
 };
 export const chapters=[
  {id:'one',roman:'I',year:'YEAR ONE',name:'The Beginning',subtitle:'Before there was us…',intro:'I didn’t know it then, but an ordinary moment was about to become my favorite beginning.',quote:'The first chapter of a story I never want to end.',memories:[{id:'first-hello',type:'FIRST CHAPTER',date:'OUR FIRST HELLO',title:'The day our worlds met',description:'Tell the story of your first conversation here. What did you notice? What made you smile?',secret:'What I was actually thinking: add a funny confession here.',image:null},{id:'first-date',type:'ONE FOR THE BOOKS',date:'OUR FIRST DATE',title:'Butterflies, probably',description:'Remember the little details: the place, the food, the nerves and the unexpected moments.',secret:'Insert a secret first-date confession.',image:null},{id:'first-photo',type:'A LITTLE HISTORY',date:'OUR FIRST PHOTO',title:'The first of many',description:'Write about the first picture you took together and why it still matters.',secret:'Insert something silly about this photo.',image:null}]},
