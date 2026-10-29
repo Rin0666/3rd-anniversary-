@@ -457,11 +457,35 @@ test('the sealed final envelope reveals the letter and tulip/sunflower bouquet',
   await expect(dialog).toContainText('Happy third anniversary.');
   await expect(dialog.locator('.personal-signature strong')).toHaveText('R. & D.');
   const bouquet = dialog.getByRole('img', { name: /pink tulips and golden sunflowers/ });
-  await bouquet.scrollIntoViewIfNeeded();
-  await expect(bouquet).toBeInViewport();
+  await expect(dialog.locator('.fitted-letter-stage')).toHaveAttribute('data-ready', 'true');
+  const originalViewport = page.viewportSize();
+  // Nothing should need scrolling, including after browser chrome changes the
+  // available height or the phone rotates while the letter is already open.
+  for (const viewport of [originalViewport, { width: 320, height: 568 }, { width: 393, height: 650 }, { width: 320, height: 400 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport);
+    await expect.poll(() => dialog.evaluate(node => {
+      const viewport = window.visualViewport;
+      const elements = [...node.querySelectorAll('.letter-modal, .personal-signature, .bouquet-art, .modal-close')];
+      const fits = elements.every(element => {
+        const rect = element.getBoundingClientRect();
+        return rect.top >= viewport.offsetTop && rect.left >= viewport.offsetLeft
+          && rect.bottom <= viewport.offsetTop + viewport.height + .5
+          && rect.right <= viewport.offsetLeft + viewport.width + .5;
+      });
+      const backdrop = node.closest('.modal-shade');
+      return fits && node.scrollHeight <= node.clientHeight + 1
+        && backdrop.scrollHeight <= backdrop.clientHeight + 1
+        && node.scrollTop === 0 && backdrop.scrollTop === 0;
+    }), `Entire letter and bouquet fit ${viewport.width}×${viewport.height}`).toBe(true);
+    await expect(bouquet).toBeInViewport({ ratio: .99 });
+  }
+  await page.setViewportSize(originalViewport);
   expect(await bouquet.evaluate(node => node.getAnimations({ subtree: true }).length)).toBe(0);
   const close = dialog.getByRole('button', { name: 'Close letter' });
   await expect(close).toBeInViewport();
+  const closeSize = await close.boundingBox();
+  expect(closeSize.width).toBeGreaterThanOrEqual(44);
+  expect(closeSize.height).toBeGreaterThanOrEqual(44);
   await close.click();
   await expect(dialog).toHaveCount(0);
   await expect(envelope).toBeFocused();

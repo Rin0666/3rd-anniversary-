@@ -139,7 +139,7 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - Letters open with an unfolding envelope, lifted wax seal, and sliding paper; reduced motion skips the sequence
 - The finale gradually warms its lighting as it enters view, with an extra glow around the last letter
 - A closed envelope sealed with R. & D. replaces the finale button; opening it reveals the final message and a bouquet of her favorite tulips and sunflowers, with small daisies and greenery
-- The bouquet sways and its blooms move subtly; reduced motion disables these animations. It rests diagonally across the letter's lower-right edge, leaving the message and signature readable, with a close button available while scrolling
+- The bouquet sways and its blooms move subtly; reduced motion disables these animations. It rests diagonally across the letter's lower-right edge. The complete final letter, signature, and bouquet fit the visible viewport without scrolling, adjusting to mobile browser bars and rotation; the close button keeps its full touch size
 - The hero-only cover opens with an outward photo burst and user-initiated Canon in D, with play/pause available while reading
 - The soundtrack is presented as a cassette sleeve and handwritten tracklist; Canon controls the background arrangement, while other linked songs open their original provider
 - Cinema cards use perforated ticket layouts, filmstrip previews, and keepsake numbers

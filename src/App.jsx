@@ -17,6 +17,7 @@ import ScrollButterflies from "./ScrollButterflies";
 import FlowerBouquet from "./FlowerBouquet";
 import useCanonMusic from "./useCanonMusic";
 import { BackgroundMusic, StoryBurst } from "./StoryOpening";
+import FittedLetter from "./FittedLetter";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -294,11 +295,7 @@ function LetterModal({ letter, onClose, isFinal = false }) {
   const [showPS, setShowPS] = useState(false);
   const reducedMotion = useReducedMotion();
   const closeRef = useDialog(true, onClose);
-  return <DialogBackdrop onClose={onClose}>
-    <motion.div className={"letter-presentation" + (isFinal ? " final-letter-presentation" : "")} role="dialog" aria-modal="true" aria-label={letter.title}
-      initial="sealed" animate="opened" exit={{ y: 15 }}>
-      {isFinal && <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>}
-      <div className={isFinal ? "final-gift-layout" : "letter-gift-layout"}>
+  const content = <div className={isFinal ? "final-gift-layout" : "letter-gift-layout"}>
       <div className="letter-panel">
       <motion.div className="opening-envelope" aria-hidden="true" variants={{ sealed: { y: -100 }, opened: { y: 0 } }}
         transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : 0.25 }}>
@@ -309,7 +306,7 @@ function LetterModal({ letter, onClose, isFinal = false }) {
         <motion.span className="wax-seal" variants={{ sealed: { y: 0, opacity: 1, scale: 1 }, opened: { y: -28, opacity: 0, scale: 0.8 } }}
           transition={{ duration: reducedMotion ? 0 : 0.3 }}><SealMark /></motion.span>
       </motion.div>
-      <motion.div className="letter-modal" variants={{ sealed: { y: 65, scale: 0.96, clipPath: 'inset(100% 0% 0% 0%)' }, opened: { y: 0, scale: 1, clipPath: 'inset(0% 0% 0% 0%)' } }}
+      <motion.div className="letter-modal" variants={{ sealed: { y: isFinal ? 18 : 65, scale: 0.96, clipPath: 'inset(100% 0% 0% 0%)' }, opened: { y: 0, scale: 1, clipPath: 'inset(0% 0% 0% 0%)' } }}
         transition={{ duration: reducedMotion ? 0 : 0.55, delay: reducedMotion ? 0 : 0.4 }}>
       {!isFinal && <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>}
       <span className="eyebrow">{isFinal ? "TO BE CONTINUED, FOREVER" : "SEALED WITH LOVE"}</span>
@@ -321,12 +318,17 @@ function LetterModal({ letter, onClose, isFinal = false }) {
       </motion.div>
       </div>
       {isFinal && <motion.aside className="bouquet-keepsake" aria-label="Flowers for you"
-        variants={{ sealed: { y: 24, scale: .94 }, opened: { y: 0, scale: 1 } }}
+        variants={{ sealed: { y: 12, scale: .94 }, opened: { y: 0, scale: 1 } }}
         transition={{ duration: reducedMotion ? 0 : .6, delay: reducedMotion ? 0 : .5 }}>
         <span className="bouquet-eyebrow">A LITTLE GIFT, ALL MY LOVE</span>
         <FlowerBouquet monogram={settings.monogram} laidDown />
       </motion.aside>}
-      </div>
+      </div>;
+  return <DialogBackdrop onClose={onClose} className={isFinal ? 'final-letter-backdrop' : ''}>
+    <motion.div className={"letter-presentation" + (isFinal ? " final-letter-presentation" : "")} role="dialog" aria-modal="true" aria-label={letter.title}
+      initial="sealed" animate="opened" exit={{ y: 15 }}>
+      {isFinal && <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>}
+      {isFinal ? <FittedLetter>{content}</FittedLetter> : content}
     </motion.div>
   </DialogBackdrop>;
 }
