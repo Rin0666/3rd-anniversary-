@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowDown, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
   Film, Heart, Mail, Menu, Music2, Play, RotateCcw, X
 } from "lucide-react";
 import { settings, chapters, songs, films, letters, finale } from "./content";
 import FallingRoses from "./FallingRoses";
+import AnniversaryCounter from "./AnniversaryCounter";
+import FloralSprig from "./FloralSprig";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -112,13 +114,14 @@ function Header() {
 }
 
 function Hero() {
-  return <section id="home" className="hero">
-    <Photo className="hero-photo" src={demo.hero} eager alt="Illustrative silhouette of a couple against a sunset" sample />
+  return <section id="home" className="hero" style={{ "--hero-focus": settings.heroImagePosition }}>
+    <Photo className="hero-photo" src={settings.heroImage || demo.hero} eager alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
     <div className="hero-shade" />
+    <div className="film-grain" aria-hidden="true" />
     <motion.div className="hero-copy" initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.05 }}>
       <span className="eyebrow">A LOVE STORY IN THREE CHAPTERS</span>
       <h1>Three Years,<br/><em>Still You.</em></h1>
-      <div className="little-heart">♡</div>
+      <AnniversaryCounter startDate={settings.relationshipStartDate} timeZone={settings.timeZone} />
       <p>Three years of laughter, late nights, adventures, and a love that keeps feeling new.</p>
       <a className="primary-button" href="#overview">Begin Our Story <ArrowRight size={17}/></a>
       <span className="hero-footnote">♡ &nbsp; MADE FOR ONE VERY SPECIAL PERSON</span>
@@ -128,22 +131,36 @@ function Hero() {
   </section>;
 }
 
-function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt }) {
-  return <div className="polaroid" style={{ "--rotation": rotation }}>
+function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note, noteId, expanded }) {
+  return <div className={"polaroid" + (expanded ? " is-open" : "")} style={{ "--rotation": rotation }}>
     <Photo src={image} alt={alt || "Illustrative couple photograph"} sample />
     <div className="polaroid-caption">{number && <b>{number}</b>}<div><strong>{title}</strong><em>{subtitle}</em></div></div>
+    <span className="polaroid-note" id={noteId} hidden={!expanded}>{note}</span>
   </div>;
+}
+
+function OverviewCard({ chapter, index, image, label }) {
+  const [expanded, setExpanded] = useState(false);
+  return <motion.div {...reveal} className="overview-link">
+    <button className="polaroid-toggle" aria-label={`A note from year ${index + 1}`} aria-expanded={expanded}
+      aria-controls={`polaroid-note-${chapter.id}`} onClick={() => setExpanded(!expanded)}
+      onPointerEnter={event => { if (event.pointerType === "mouse") setExpanded(true); }}
+      onPointerLeave={event => { if (event.pointerType === "mouse") setExpanded(false); }}>
+      <Polaroid image={image} title={"Year " + (index + 1)} subtitle={label} number={index + 1}
+        rotation={index % 2 ? "3deg" : "-3deg"} note={chapter.quote} expanded={expanded} noteId={`polaroid-note-${chapter.id}`} />
+    </button>
+    <a className="chapter-open" href={"#chapter-" + chapter.id}>Turn to year {index + 1} <ArrowRight size={13} /></a>
+  </motion.div>;
 }
 
 function Overview() {
   const images = [demo.one, demo.two, demo.three];
   const labels = ["The Beginning", "Growing Together", "Still You"];
   return <section className="paper-section overview" id="overview">
+    <FloralSprig className="floral-corner-top" />
     <SectionHeading light number="00" eyebrow="OUR LITTLE UNIVERSE" title={<>A love story in <em>three chapters.</em></>} caption="Different seasons. One favorite person." />
     <div className="overview-cards">
-      {chapters.map((chapter, i) => <motion.a {...reveal} className="overview-link" href={"#chapter-" + chapter.id} key={chapter.id}>
-        <Polaroid image={images[i]} title={"Year " + (i + 1)} subtitle={labels[i]} number={i + 1} rotation={i % 2 ? "3deg" : "-3deg"} />
-      </motion.a>)}
+      {chapters.map((chapter, i) => <OverviewCard key={chapter.id} chapter={chapter} index={i} image={images[i]} label={labels[i]} />)}
     </div>
     <motion.blockquote {...reveal} className="overview-quote">“Out of all the stories life could have written for me, I’m glad mine has <em>you</em> in it.”</motion.blockquote>
     <span className="doodle-heart" aria-hidden="true">♡</span>
@@ -157,6 +174,7 @@ function MemoryCard({ memory, index, chapterIndex }) {
     <div className="memory-photo-wrap">
       <Photo src={image} alt={"Illustrative photo for " + memory.title} sample={!memory.image} />
       <div className="tape" aria-hidden="true" />
+      <span className="memory-date">{memory.date}</span>
     </div>
     <div className="memory-copy">
       <span className="eyebrow">{memory.date}</span>
@@ -175,6 +193,8 @@ function MemoryCard({ memory, index, chapterIndex }) {
 function Chapter({ chapter, index }) {
   const isDark = index === 1;
   return <section id={"chapter-" + chapter.id} className={"story-chapter " + (isDark ? "dark-chapter" : "paper-section") + " chapter-" + chapter.id}>
+    <FloralSprig className="floral-corner-top" />
+    <FloralSprig className="floral-corner-bottom" />
     <div className="chapter-top">
       <motion.div {...reveal} className="chapter-label"><span className="eyebrow">0{index + 1}. / YEAR {index + 1}</span><span className="chapter-star">♡</span></motion.div>
       <motion.div {...reveal} className="chapter-titles"><h2>{chapter.name}</h2><em>{index === 0 ? "The Beginning" : index === 1 ? "Growing Together" : "Still You"}</em></motion.div>
@@ -214,6 +234,8 @@ function Soundtrack() {
 function useDialog(isOpen, onClose) {
   const closeRef = useRef(null);
   const priorFocus = useRef(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
   useEffect(() => {
     if (!isOpen) return;
     priorFocus.current = document.activeElement;
@@ -221,7 +243,7 @@ function useDialog(isOpen, onClose) {
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     const keyDown = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
       if (e.key === "Tab") {
         const modal = closeRef.current?.closest('[role="dialog"]');
         if (!modal) return;
@@ -234,24 +256,36 @@ function useDialog(isOpen, onClose) {
     };
     window.addEventListener("keydown", keyDown);
     return () => { document.body.style.overflow = oldOverflow; window.removeEventListener("keydown", keyDown); priorFocus.current?.focus?.(); };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
   return closeRef;
 }
 
 function LetterModal({ letter, onClose, isFinal = false }) {
   const [showPS, setShowPS] = useState(false);
+  const reducedMotion = useReducedMotion();
   const closeRef = useDialog(true, onClose);
   return <motion.div className="modal-shade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-    <motion.div className="letter-modal" role="dialog" aria-modal="true" aria-label={letter.title}
-      initial={{ y: 32, opacity: 0, scale: 0.97 }} animate={{ y: 0, opacity: 1, scale: 1 }}
-      exit={{ y: 20, opacity: 0 }} transition={{ duration: 0.35 }}>
+    <motion.div className="letter-presentation" role="dialog" aria-modal="true" aria-label={letter.title}
+      initial="sealed" animate="opened" exit={{ opacity: 0, y: 15 }}>
+      <motion.div className="opening-envelope" aria-hidden="true" variants={{ sealed: { y: -100 }, opened: { y: 0 } }}
+        transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : 0.25 }}>
+        <div className="opening-envelope-back" />
+        <motion.div className="opening-envelope-flap" variants={{ sealed: { rotateX: 0 }, opened: { rotateX: -175 } }}
+          transition={{ duration: reducedMotion ? 0 : 0.5, delay: reducedMotion ? 0 : 0.1 }} />
+        <div className="opening-envelope-front" />
+        <motion.span className="wax-seal" variants={{ sealed: { y: 0, opacity: 1, scale: 1 }, opened: { y: -28, opacity: 0, scale: 0.8 } }}
+          transition={{ duration: reducedMotion ? 0 : 0.3 }}>♥</motion.span>
+      </motion.div>
+      <motion.div className="letter-modal" variants={{ sealed: { y: 65, opacity: 0, scale: 0.96 }, opened: { y: 0, opacity: 1, scale: 1 } }}
+        transition={{ duration: reducedMotion ? 0 : 0.55, delay: reducedMotion ? 0 : 0.4 }}>
       <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>
       <span className="eyebrow">{isFinal ? "TO BE CONTINUED, FOREVER" : "SEALED WITH LOVE"}</span>
       <h2>{letter.title}</h2>
       {letter.body.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
       {letter.ps && <><button className="ps-trigger" onClick={() => setShowPS(!showPS)}>{showPS ? "Hide P.S." : "P.S. One more thing..."} ♡</button>{showPS && <p className="postscript">{letter.ps}</p>}</>}
       <div className="letter-seal">♥</div>
+      </motion.div>
     </motion.div>
   </motion.div>;
 }
@@ -259,6 +293,7 @@ function LetterModal({ letter, onClose, isFinal = false }) {
 function LetterVault() {
   const [active, setActive] = useState(null);
   return <section className="paper-section letters-section" id="letters">
+    <FloralSprig className="floral-corner-top" />
     <SectionHeading light number="05" eyebrow="WORDS FOR EVERY VERSION OF YOU" title="Letters to You" caption="A few things I have always wanted you to know. Choose an envelope." />
     <div className="envelope-list">{letters.map((letter, i) => <motion.button {...reveal} className="envelope-row" key={letter.id} onClick={() => setActive(letter)}>
       <span className="envelope-illustration"><Mail size={33} strokeWidth={1.2}/><span>♥</span></span>
@@ -293,25 +328,31 @@ function Cinema() {
 
 function Finale() {
   const [show, setShow] = useState(false);
-  return <section className="finale" id="finale">
-    <Photo className="finale-photo" src={demo.hero} alt="Illustrative sunset photograph of a couple" sample />
+  const [arrived, setArrived] = useState(false);
+  return <motion.section className={"finale" + (arrived ? " has-arrived" : "") + (show ? " has-letter-open" : "")} id="finale"
+    onViewportEnter={() => setArrived(true)} viewport={{ once: true, amount: 0.15 }}>
+    <Photo className="finale-photo" src={settings.heroImage || demo.hero} alt={settings.heroImage ? settings.heroImageAlt : "Illustrative sunset photograph of a couple"} sample={!settings.heroImage} />
     <div className="finale-shade" />
-    <div className="finale-lights" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/><i/></div>
+    <div className="finale-warmth" aria-hidden="true" />
+    <div className="film-grain" aria-hidden="true" />
+    <div className="finale-lights" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i}
+      style={{ left: `${8 + (i * 29) % 84}%`, top: `${12 + (i * 17) % 68}%`, "--light-delay": `${i * 0.13}s` }} />)}</div>
     <motion.div {...reveal} className="finale-copy">
       <span className="eyebrow">07. / THE GRAND FINALE</span>
       <h2>And Here We Are,<br/><em>Three Years Later ♡</em></h2>
       <p>Through every season, every challenge, and every beautiful moment, I'm still so glad it's you. Thank you for three amazing years. Here's to more adventures, more laughter, and a lifetime of us.</p>
+      <span className="finale-promise">{finale.answer}</span>
       <button className="primary-button" onClick={() => setShow(true)}>Here's to Forever <Heart size={16}/></button>
     </motion.div>
     <div className="finale-bottom"><span>THE END OF CHAPTER THREE</span><h3>{settings.closing}</h3><p>{settings.subclosing}</p><a href="#home">Relive our story <RotateCcw size={15}/></a></div>
     <AnimatePresence>{show && <LetterModal letter={{title:"My Favorite Story Is Us",body:finale.letter,ps:finale.signature}} isFinal onClose={() => setShow(false)}/>}</AnimatePresence>
-  </section>;
+  </motion.section>;
 }
 
 export default function App() {
-  return <div className="site"><FallingRoses /><Header /><main><Hero /><Overview />
+  return <MotionConfig reducedMotion="user"><div className="site"><FallingRoses /><Header /><main><Hero /><Overview />
     {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
     <Soundtrack /><LetterVault /><Cinema /><Finale /></main>
     <footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">BACK TO THE BEGINNING ↑</a></footer>
-  </div>;
+  </div></MotionConfig>;
 }

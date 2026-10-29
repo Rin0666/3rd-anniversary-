@@ -1,0 +1,81 @@
+/* Sunset photography, a fine film texture, and a quiet anniversary detail. */
+.hero { background: #35202a; }
+.hero-photo img { object-position: var(--hero-focus, center 42%); filter: saturate(.85) sepia(.18); }
+.hero-photo .photo-fallback span, .finale-photo .photo-fallback span { display: none; }
+.hero-shade {
+  background: radial-gradient(ellipse at 65% 15%, #f6ae6936, transparent 58%),
+    radial-gradient(ellipse at center, transparent 20%, #160d1966 100%),
+    linear-gradient(180deg, #24111f8c, #2b152779 35%, #1b1022c9 76%, #170d16ef);
+}
+.film-grain {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .055; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' opacity='.7' filter='url(%23grain)'/%3E%3C/svg%3E");
+}
+.anniversary-counter { display: inline-flex; align-items: center; gap: 13px; padding: 11px 22px; margin: 0 auto 24px; border-block: 1px solid #e6b19e4d; color: #f1c6b7; }
+.counter-heart { font-family: 'Caveat', cursive; font-size: 37px; line-height: 1; }
+.counter-value { display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1; }
+.counter-value strong { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 32px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.counter-caption { display: block; margin-top: 5px; font-size: 8px; letter-spacing: 1.3px; line-height: 1.6; color: #e8c9bd; }
+
+/* Each Polaroid has a note to discover with a mouse, keyboard, or tap. */
+.overview-link:hover { transform: none; }
+.polaroid-toggle { display: block; width: 100%; border: 0; padding: 0; background: none; color: inherit; }
+.polaroid { transition: transform .4s cubic-bezier(.2,.7,.2,1), box-shadow .4s; }
+.polaroid-toggle:hover .polaroid,
+.polaroid-toggle:focus-visible .polaroid,
+.polaroid.is-open { transform: translateY(-9px) rotate(0); box-shadow: 0 20px 38px #49312544; }
+.polaroid-note:not([hidden]) { display: block; margin: 14px 5px 0; padding-top: 12px; border-top: 1px dashed #caac98; color: #8f5360; font-family: 'Caveat', cursive; font-size: 23px; line-height: 1.2; animation: note-reveal .3s ease both; }
+.chapter-open { display: inline-flex; justify-content: center; align-items: center; gap: 9px; margin-top: 20px; padding: 8px 0; color: #8d4d5c; font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+.memory-date { display: block; padding: 10px 5px 12px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.2; color: #a2676e; text-align: right; transform: rotate(-2deg); }
+@keyframes note-reveal { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Botanical drawings sit behind the chapter content. */
+.floral-sprig { position: absolute; width: clamp(105px, 16vw, 185px); height: auto; color: #a46c77; opacity: .28; pointer-events: none; }
+.floral-corner-top { top: 27px; right: 15px; transform: rotate(16deg); }
+.floral-corner-bottom { bottom: 45px; left: 12px; transform: rotate(190deg); }
+.dark-chapter .floral-sprig { color: #edc3ad; opacity: .2; }
+.chapter-top, .memory-stream, .overview-cards, .envelope-list { position: relative; z-index: 1; }
+
+/* A seal lifts, the flap unfolds, and the paper slides out of its envelope. */
+.letter-presentation { position: relative; isolation: isolate; width: min(100%, 610px); padding-bottom: 28px; perspective: 1000px; }
+.letter-presentation .letter-modal { position: relative; z-index: 1; width: 100%; max-height: min(84svh, 750px); overscroll-behavior: contain; border: 1px solid #e1c9ad; }
+.opening-envelope { position: absolute; z-index: 0; bottom: 0; left: 4%; width: 92%; height: 220px; perspective: 900px; filter: drop-shadow(0 16px 20px #0004); }
+.opening-envelope-back, .opening-envelope-front, .opening-envelope-flap { position: absolute; inset: 0; border-radius: 3px; }
+.opening-envelope-back { background: #dcb99c; border: 1px solid #c89e82; }
+.opening-envelope-front { z-index: 2; background: linear-gradient(145deg, #ecd0b1, #e0bb9e); clip-path: polygon(0 0, 50% 47%, 100% 0, 100% 100%, 0 100%); }
+.opening-envelope-flap { z-index: 1; height: 60%; background: linear-gradient(#e9c8aa, #cba285); clip-path: polygon(0 0, 100% 0, 50% 100%); transform-origin: center top; backface-visibility: visible; }
+.wax-seal { position: absolute; z-index: 3; top: 42%; left: 50%; translate: -50% -50%; width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; color: #f3c6b2; font-size: 23px; border: 3px double #d9968f; background: radial-gradient(circle at 35% 30%, #b96476, #793448); box-shadow: 0 3px 6px #4b1e423d; }
+.envelope-illustration { transition: transform .3s ease, box-shadow .3s ease; }
+.envelope-row:hover .envelope-illustration, .envelope-row:focus-visible .envelope-illustration { transform: translateY(-3px) rotate(0); box-shadow: 2px 7px 14px #a7816750; }
+.envelope-illustration span { display: grid; place-items: center; width: 19px; height: 19px; font-size: 11px; border-radius: 50%; color: #f7d2c3; background: #a45468; box-shadow: 0 1px 3px #754a4540; }
+
+/* The last chapter warms up as it comes into view. */
+.finale { overflow: clip; }
+.finale-copy, .finale-bottom { z-index: 2; }
+.finale-warmth { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transform: scale(.9); background: radial-gradient(ellipse at 50% 58%, #d8905b60, transparent 65%), radial-gradient(ellipse at 15% 20%, #d6944726, transparent 45%); transition: opacity 2.4s ease, transform 3s ease, filter 1.5s ease; }
+.finale.has-arrived .finale-warmth { opacity: 1; transform: scale(1); }
+.finale.has-letter-open .finale-warmth { filter: brightness(1.5); }
+.finale-lights { opacity: 0; transition: opacity 2s ease; }
+.finale.has-arrived .finale-lights { opacity: 1; }
+.finale-lights i { width: 4px; height: 4px; box-shadow: 0 0 20px 7px #e8996a69; animation: fairy-glow 4s ease-in-out var(--light-delay) infinite alternate; animation-play-state: paused; }
+.finale.has-arrived .finale-lights i { animation-play-state: running; }
+.finale-promise { display: block; margin: -2px auto 30px; font-family: 'Caveat', cursive; font-size: clamp(28px, 5vw, 43px); line-height: 1.15; color: #f3bca4; }
+@keyframes fairy-glow { from { opacity: .3; transform: scale(.75); } to { opacity: 1; transform: scale(1.35); } }
+
+@media (max-width: 700px) {
+  .hero { padding-top: 95px; }
+  .hero h1 { margin-top: 27px; margin-bottom: 23px; }
+  .anniversary-counter { margin-bottom: 22px; padding: 8px 17px; }
+  .counter-value { font-size: 22px; }
+  .counter-value strong { font-size: 29px; }
+  .floral-sprig { opacity: .2; }
+  .floral-corner-top { right: -5px; top: 18px; }
+  .floral-corner-bottom { left: -10px; }
+  .opening-envelope { height: 170px; }
+  .letter-presentation { padding-bottom: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .polaroid, .envelope-illustration, .finale-warmth, .finale-lights { transition: none; }
+  .polaroid-note:not([hidden]), .finale-lights i { animation: none; }
+  .finale-lights i { opacity: .8; }
+}

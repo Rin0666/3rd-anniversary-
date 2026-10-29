@@ -14,7 +14,7 @@
     "pages:dev": "wrangler pages dev --config wrangler.pages.jsonc",
     "deploy": "npm run build && wrangler deploy",
     "pages:deploy": "npm run build && wrangler pages deploy --config wrangler.pages.jsonc",
-    "test": "npm run build && playwright test"
+    "test": "npm run build && node --test tests/*.test.js && playwright test"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.4.1",

@@ -80,6 +80,8 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Content | Where to edit |
 | --- | --- |
 | Site title and dedication | `settings` |
+| Hero/finale photo, alt text, and crop | `settings.heroImage`, `settings.heroImageAlt`, `settings.heroImagePosition` |
+| Days together and calendar timezone | `settings.relationshipStartDate`, `settings.timeZone` |
 | Three years and their memories | `chapters[].memories` |
 | Song names, artist, listen URL | `songs` |
 | Cinema videos and cover images | `films` |
@@ -89,6 +91,8 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Layout, colors, fonts, textures and motion | `src/styles.css` |
 
 ### Replacing a photo
+
+The opening and finale share `settings.heroImage`; leave it empty to keep the labeled illustrative sunset photo. Set `settings.heroImageAlt` and adjust `settings.heroImagePosition` to keep your subject in the crop. The opening adds a sunset tint, vignette, and fine film texture.
 
 In `src/content.js`, set each memory's `image` to a valid, accessible URL, e.g. `image: "/media/my-memory.webp"` **only when the site is secured and the photo is not private**. For personal media, prefer an authenticated asset endpoint backed by private Cloudflare R2, then reference those protected URLs. For now, blank `image` values use illustrative photos, with a **SAMPLE PHOTO** label.
 
@@ -104,6 +108,10 @@ Set `films[].src` to an accessible video URL and optionally `films[].poster` to 
 
 Update `letters[].body` (array of paragraphs), `letters[].ps`, and `finale.letter`. These sample letters are intentionally generic.
 
+### Anniversary counter
+
+The relationship start date is **November 1, 2023**, stored as `settings.relationshipStartDate: '2023-11-01'`. The counter counts elapsed calendar days in `Asia/Manila`, includes leap days, and updates each minute and when the page becomes visible again. A missing, invalid, or future date shows “Three years & counting” rather than an invented number.
+
 ## Design decisions
 
 - Scroll-first single-column story on mobile; tasteful two-column memory grids on large screens
@@ -111,6 +119,10 @@ Update `letters[].body` (array of paragraphs), `letters[].ps`, and `finale.lette
 - Responsive tap targets, in-page navigation, smooth transitions, reduced-motion support
 - Gently falling roses that speed up with downward scrolling and rise with upward scrolling; hidden when reduced motion is preferred
 - Interactive hidden confessions, accessible modal close buttons and Escape handling
+- Polaroids lift and reveal handwritten notes with hover, keyboard, or touch; a separate link opens each chapter
+- Botanical rose corners and handwritten memory labels carry the scrapbook theme through the chapters
+- Letters open with an unfolding envelope, lifted wax seal, and sliding paper; reduced motion skips the sequence
+- The finale gradually warms its lighting as it enters view, with an extra glow around the last letter
 - Image lazy loading except the first hero image and graceful media fallbacks
 
 ## Safety and privacy
@@ -132,6 +144,6 @@ On Linux, `npx playwright install --with-deps chromium` can install the browser'
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test
 ```
 
-The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, all four letter dialogs and their P.S. toggles, the finale, cinema placeholders, falling roses and scroll direction, reduced motion, and JavaScript errors. It deliberately blocks optional external images and fonts to check graceful fallback behavior. Personal song links and video playback require your own media in `src/content.js` and are not covered by placeholder tests.
+The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, Polaroid interactions, letter animation and keyboard focus, finale lighting, cinema placeholders, falling roses and scroll direction, reduced motion, the anniversary counter across Manila midnight, and JavaScript errors. Date arithmetic also has Node.js tests for leap days, timezone boundaries, and invalid dates. Browser tests deliberately block optional external images and fonts to check graceful fallback behavior. Personal song links and video playback require your own media in `src/content.js` and are not covered by placeholder tests.
 
 GitHub Actions installs with `npm ci`, builds the site, runs this suite, and uploads the successful `dist/` build as the `anniversary-site` artifact. This workflow validates the site; Cloudflare's Git integration handles deployment. Inspect the real Cloudflare deployment log and test on a phone before sharing the final site.

@@ -156,3 +156,76 @@ test('roses respect reduced motion and respond to preference changes', async ({ 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(layer).toBeHidden();
 });
+
+test('the anniversary counter uses the supplied date and updates at Manila midnight', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-10-29T04:00:00Z'));
+  await page.goto('/');
+  const counter = page.getByRole('group', { name: 'Our time together' });
+  await expect(counter).toContainText('1,093 days together');
+  await expect(counter.locator('time')).toHaveAttribute('datetime', '2023-11-01');
+  await page.clock.setFixedTime(new Date('2026-10-29T16:00:01Z'));
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await expect(counter).toContainText('1,094 days together');
+});
+
+test('Polaroid notes work with touch, keyboard, and mouse', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const toggle = page.getByRole('button', { name: 'A note from year 1' });
+  if (testInfo.project.name === 'mobile') {
+    await toggle.tap();
+  } else {
+    await toggle.focus();
+    await toggle.press('Enter');
+  }
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#polaroid-note-one')).toBeVisible();
+  if (testInfo.project.name === 'mobile') {
+    await toggle.tap();
+  } else {
+    await toggle.press('Enter');
+  }
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#polaroid-note-one')).toBeHidden();
+  if (testInfo.project.name === 'desktop') {
+    await toggle.hover();
+    await expect(page.locator('#polaroid-note-one')).toBeVisible();
+    await page.mouse.move(0, 0);
+    await expect(page.locator('#polaroid-note-one')).toBeHidden();
+  }
+  await page.getByRole('link', { name: 'Turn to year 1' }).click();
+  await expect(page).toHaveURL(/#chapter-one$/);
+});
+
+test('the envelope unfolds and the opened letter keeps keyboard focus', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const envelope = page.getByRole('button', { name: /When You Miss Me/ });
+  await envelope.click();
+  const dialog = page.getByRole('dialog', { name: 'When You Miss Me' });
+  await expect(dialog.locator('.letter-modal')).toHaveCSS('opacity', '1');
+  await expect(dialog.locator('.wax-seal')).toHaveCSS('opacity', '0');
+  await expect.poll(() => dialog.locator('.opening-envelope-flap').evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).m22)).toBeLessThan(-0.98);
+  const close = dialog.getByRole('button', { name: 'Close letter' });
+  await expect(close).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  const postscript = dialog.getByRole('button', { name: 'P.S. One more thing...' });
+  await expect(postscript).toBeFocused();
+  await postscript.click();
+  await expect(dialog.getByRole('button', { name: 'Hide P.S.' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(envelope).toBeFocused();
+});
+
+test('the finale lights warm up as the final message appears', async ({ page }) => {
+  await page.goto('/');
+  const finale = page.locator('#finale');
+  await finale.scrollIntoViewIfNeeded();
+  await expect(finale).toHaveClass(/has-arrived/);
+  await expect(finale.locator('.finale-lights')).toHaveCSS('opacity', '1');
+  await expect(finale.locator('.finale-promise')).toHaveText('I would still choose you.');
+  await page.getByRole('button', { name: "Here's to Forever" }).click();
+  await expect(finale).toHaveClass(/has-letter-open/);
+  await page.getByRole('button', { name: 'Close letter' }).click();
+  await expect(finale).not.toHaveClass(/has-letter-open/);
+});
