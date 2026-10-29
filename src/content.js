@@ -24,6 +24,15 @@ export const chapters = [
     "subtitle": "Before there was us…",
     "intro": "I didn’t know it then, but an ordinary moment was about to become my favorite beginning.",
     "quote": "The first chapter of a story I never want to end.",
+    "coverPhoto": {
+      "id": "year-one-cover",
+      "date": "YEAR ONE",
+      "title": "The Beginning",
+      "description": "The first chapter of a story I never want to end.",
+      "image": "/media/photos/year-one-together.webp",
+      "alt": "Together in a mirror photo, dressed up with a bouquet",
+      "imagePosition": "center 30%"
+    },
     "memories": [
       {
         "id": "first-hello",
@@ -32,9 +41,9 @@ export const chapters = [
         "title": "The day our worlds met",
         "description": "Tell the story of your first conversation here. What did you notice? What made you smile?",
         "secret": "What I was actually thinking: add a funny confession here.",
-        "image": "/media/photos/year-one-together.webp",
-        "alt": "Together in a mirror photo, dressed up with a bouquet",
-        "imagePosition": "center 30%"
+        "image": "/media/photos/first-hello.webp",
+        "alt": "Our close-up selfie together under warm evening lights",
+        "imagePosition": "center 65%"
       },
       {
         "id": "first-date",

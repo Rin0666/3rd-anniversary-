@@ -44,10 +44,12 @@ const demoMemoryImages = {
   today: demo.three
 };
 const memoryImage = memory => memory.image || demoMemoryImages[memory.id] || demo.one;
+const chapterCover = chapter => chapter.coverPhoto || chapter.memories[0];
 const albumPhotos = [
   ...chapters.flatMap(chapter => chapter.memories),
   ...chapters.flatMap(chapter => chapter.extraPhotos || []),
-  ...looseSnapshots
+  ...looseSnapshots,
+  ...chapters.flatMap(chapter => chapter.coverPhoto ? [chapter.coverPhoto] : [])
 ].map(memory => ({
   id: memory.id, src: memoryImage(memory), title: memory.title, date: memory.date,
   caption: memory.description, sample: !memory.image,
@@ -163,6 +165,7 @@ function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note
 
 function OverviewCard({ chapter, index, image, label }) {
   const [expanded, setExpanded] = useState(false);
+  const cover = chapterCover(chapter);
   return <motion.div {...reveal} className="overview-link">
     <button className="polaroid-toggle" aria-label={`A note from year ${index + 1}`} aria-expanded={expanded}
       aria-controls={`polaroid-note-${chapter.id}`} onClick={() => setExpanded(!expanded)}
@@ -170,14 +173,14 @@ function OverviewCard({ chapter, index, image, label }) {
       onPointerLeave={event => { if (event.pointerType === "mouse") setExpanded(false); }}>
       <Polaroid image={image} title={"Year " + (index + 1)} subtitle={label} number={index + 1}
         rotation={index % 2 ? "3deg" : "-3deg"} note={chapter.quote} expanded={expanded} noteId={`polaroid-note-${chapter.id}`}
-        alt={chapter.memories[0]?.alt} position={chapter.memories[0]?.imagePosition} sample={!chapter.memories[0]?.image} />
+        alt={cover?.alt} position={cover?.imagePosition} sample={!cover?.image} />
     </button>
     <a className="chapter-open" href={"#chapter-" + chapter.id}>Turn to year {index + 1} <ArrowRight size={13} /></a>
   </motion.div>;
 }
 
 function Overview() {
-  const images = chapters.map(chapter => memoryImage(chapter.memories[0]));
+  const images = chapters.map(chapter => memoryImage(chapterCover(chapter)));
   const labels = ["The Beginning", "Growing Together", "Still You"];
   return <section className="paper-section overview" id="overview">
     <FloralSprig className="floral-corner-top" />
@@ -255,6 +258,7 @@ function ChapterKeepsakes({ chapter, paired = false }) {
 function Chapter({ chapter, index }) {
   const isDark = index === 1;
   const openPhoto = usePhotoAlbum();
+  const cover = chapterCover(chapter);
   return <section id={"chapter-" + chapter.id} className={"story-chapter " + (isDark ? "dark-chapter" : "paper-section") + " chapter-" + chapter.id}>
     <FloralSprig className="floral-corner-top" />
     <FloralSprig className="floral-corner-bottom" />
@@ -264,10 +268,10 @@ function Chapter({ chapter, index }) {
       <motion.p {...reveal} className="chapter-opening">{chapter.intro}</motion.p>
     </div>
     {index === 0 ? <div className="chapter-hero-image">
-      <Photo src={chapter.memories[0]?.image || [demo.one, demo.two, demo.three][index]}
-        alt={chapter.memories[0]?.image ? (chapter.memories[0].alt || chapter.memories[0].title) : "Illustrative chapter " + (index + 1) + " photograph"}
-        position={chapter.memories[0]?.imagePosition}
-        sample={!chapter.memories[0]?.image} onOpen={chapter.memories[0] ? () => openPhoto(chapter.memories[0].id) : undefined} />
+      <Photo src={cover?.image || [demo.one, demo.two, demo.three][index]}
+        alt={cover?.image ? (cover.alt || cover.title) : "Illustrative chapter " + (index + 1) + " photograph"}
+        position={cover?.imagePosition}
+        sample={!cover?.image} onOpen={cover ? () => openPhoto(cover.id) : undefined} />
       <div className="chapter-image-caption">CHAPTER {index + 1} <span>·</span> {chapter.year}</div>
     </div> : <ChapterKeepsakes chapter={chapter} paired={index === 2} />}
     {index === 1 && <div className="chapter-tags"><span>ALL MEMORIES</span><span>ADVENTURES</span><span>LAUGHTER</span><span>LITTLE THINGS</span></div>}
