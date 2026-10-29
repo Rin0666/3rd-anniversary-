@@ -1,0 +1,158 @@
+import { test as base, expect } from '@playwright/test';
+
+const test = base.extend({
+  page: async ({ page }, use) => {
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    // The story must remain usable when optional remote images/fonts fail.
+    await page.route('**/*', route => {
+      if (new URL(route.request().url()).origin === 'http://127.0.0.1:8788') {
+        return route.continue();
+      }
+      return route.abort();
+    });
+    await use(page);
+    expect(errors, 'Uncaught JavaScript errors').toEqual([]);
+  },
+});
+
+test('Cloudflare serves the built page, bundles, cache headers, and SPA fallback', async ({ request }) => {
+  const response = await request.get('/');
+  expect(response.status()).toBe(200);
+  const html = await response.text();
+  expect(html).toContain('<div id="root"></div>');
+  expect(html).not.toContain('/src/main.jsx');
+
+  const assets = [...html.matchAll(/(?:src|href)="(\/assets\/[^\"]+)"/g)].map(match => match[1]);
+  expect(assets.some(asset => asset.endsWith('.js'))).toBe(true);
+  expect(assets.some(asset => asset.endsWith('.css'))).toBe(true);
+  for (const asset of assets) {
+    const file = await request.get(asset);
+    expect(file.status(), asset).toBe(200);
+    expect(file.headers()['content-type']).toMatch(asset.endsWith('.js') ? /javascript/ : /text\/css/);
+    expect(file.headers()['cache-control']).toContain('max-age=31536000');
+    expect(file.headers()['cache-control']).toContain('immutable');
+  }
+
+  const fallback = await request.get('/shared-story');
+  expect(fallback.status()).toBe(200);
+  expect(await fallback.text()).toBe(html);
+});
+
+test('chapter navigation survives a reload', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Three Years, Still You.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  const navigation = page.getByRole('navigation', { name: 'Story navigation' });
+  await expect(navigation.getByRole('link')).toHaveCount(8);
+  for (const link of await navigation.getByRole('link').all()) {
+    const target = await link.getAttribute('href');
+    await expect(page.locator(target)).toHaveCount(1);
+  }
+  await navigation.getByRole('link', { name: 'Year three' }).click();
+  await expect(page).toHaveURL(/#chapter-three$/);
+  await expect(page.getByRole('button', { name: 'Open navigation' })).toHaveAttribute('aria-expanded', 'false');
+  await page.reload();
+  await expect(page.locator('#chapter-three').getByRole('heading', { name: 'Still You', exact: true })).toBeVisible();
+});
+
+test('memory notes expand and fold away', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.memory-card')).toHaveCount(9);
+  const memory = page.locator('.memory-card').first();
+  const toggle = memory.getByRole('button');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(memory.locator('.memory-secret > p')).toContainText('funny confession');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(memory.locator('.memory-secret > p')).toHaveCount(0);
+});
+
+test('every letter and the finale open, reveal their P.S., and close', async ({ page }) => {
+  await page.goto('/');
+  const titles = ['When You Miss Me', 'When You’re Sad', 'When We Disagree', 'Just Because'];
+  for (const title of titles) {
+    const envelope = page.getByRole('button', { name: new RegExp(title) });
+    await envelope.click();
+    const dialog = page.getByRole('dialog', { name: title, exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Close letter' })).toBeFocused();
+    await dialog.getByRole('button', { name: 'P.S. One more thing...' }).click();
+    await expect(dialog.locator('.postscript')).toBeVisible();
+    await dialog.getByRole('button', { name: 'Hide P.S.' }).click();
+    await expect(dialog.locator('.postscript')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(envelope).toBeFocused();
+  }
+  await page.getByRole('button', { name: "Here's to Forever" }).click();
+  const finale = page.getByRole('dialog', { name: 'My Favorite Story Is Us' });
+  await expect(finale).toContainText('Happy third anniversary.');
+  await finale.getByRole('button', { name: 'Close letter' }).click();
+  await expect(finale).toHaveCount(0);
+});
+
+test('both cinema placeholders open and close', async ({ page }) => {
+  await page.goto('/');
+  for (const title of ['Our Little Movie', 'The Bloopers']) {
+    await page.getByRole('button', { name: new RegExp(title) }).click();
+    const dialog = page.getByRole('dialog', { name: title, exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Add your own video source');
+    await dialog.getByRole('button', { name: 'Close video' }).click();
+    await expect(dialog).toHaveCount(0);
+  }
+});
+
+test('the story works without remote media and fits the viewport', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hero-photo .photo-fallback')).toBeVisible();
+  for (const id of ['overview', 'chapter-one', 'chapter-two', 'chapter-three', 'soundtrack', 'letters', 'cinema', 'finale']) {
+    await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+    await expect(page.locator(`#${id} h2`).first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  }
+});
+
+test('roses fall gently and follow the direction of scrolling', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const layer = page.locator('.falling-roses');
+  await expect(layer).toBeVisible();
+  await expect(layer).toHaveAttribute('aria-hidden', 'true');
+  await expect(layer).toHaveCSS('pointer-events', 'none');
+
+  // Measure actual movement over time, rather than animation implementation details.
+  const measureSpeed = destination => page.evaluate(async destination => {
+    const rose = document.querySelector('.falling-rose');
+    const position = () => new DOMMatrixReadOnly(getComputedStyle(rose).transform).m42;
+    const startY = position();
+    const startTime = performance.now();
+    if (destination !== null) window.scrollTo({ top: destination, behavior: 'instant' });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return (position() - startY) / ((performance.now() - startTime) / 1000);
+  }, destination);
+
+  const restingSpeed = await measureSpeed(null);
+  expect(restingSpeed).toBeGreaterThan(0);
+  const downwardSpeed = await measureSpeed(180);
+  expect(downwardSpeed).toBeGreaterThan(restingSpeed * 2);
+  const upwardSpeed = await measureSpeed(40);
+  expect(upwardSpeed).toBeLessThan(0);
+  expect(await measureSpeed(null)).toBeGreaterThan(0);
+
+  // The decoration must not intercept the controls underneath it.
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await expect(page.getByRole('navigation', { name: 'Story navigation' })).toBeVisible();
+});
+
+test('roses respect reduced motion and respond to preference changes', async ({ page }) => {
+  await page.goto('/');
+  const layer = page.locator('.falling-roses');
+  await expect(layer).toBeHidden();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(layer).toBeVisible();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(layer).toBeHidden();
+});

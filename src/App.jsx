@@ -5,6 +5,7 @@ import {
   Film, Heart, Mail, Menu, Music2, Play, RotateCcw, X
 } from "lucide-react";
 import { settings, chapters, songs, films, letters, finale } from "./content";
+import FallingRoses from "./FallingRoses";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -308,7 +309,7 @@ function Finale() {
 }
 
 export default function App() {
-  return <div className="site"><Header /><main><Hero /><Overview />
+  return <div className="site"><FallingRoses /><Header /><main><Hero /><Overview />
     {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
     <Soundtrack /><LetterVault /><Cinema /><Finale /></main>
     <footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">BACK TO THE BEGINNING ↑</a></footer>

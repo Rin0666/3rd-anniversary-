@@ -10,6 +10,11 @@ button:focus-visible,a:focus-visible{outline:2px solid #f2b9a9;outline-offset:4p
 h1,h2,h3,p,blockquote{margin:0}
 h1,h2,h3,.polaroid strong,.overview-quote,.chapter-ending,.memory-copy h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500}
 .site{width:100%;min-height:100vh;overflow:clip}
+.falling-roses{position:fixed;inset:0;z-index:10;overflow:hidden;pointer-events:none;contain:strict}
+.falling-rose{position:absolute;top:0;left:0;width:var(--rose-size);height:calc(var(--rose-size) * 1.45);opacity:.55;will-change:transform}
+.falling-rose svg{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 3px #30112226)}
+@media(max-width:700px){.falling-rose:nth-child(n+9){display:none}.falling-rose{opacity:.45}}
+@media(prefers-reduced-motion:reduce){.falling-roses{display:none}}
 .site-header{height:68px;z-index:15;position:fixed;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,calc((100vw - 1160px)/2));color:#f7e9e2;background:linear-gradient(#100d15d9,#100d15b8);backdrop-filter:blur(18px);border-bottom:1px solid #ffffff1a}
 .site-header .icon-button{width:40px;height:42px;display:grid;place-items:center;background:none;border:0;color:#f4d4d0}
 .brand{font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.5px;font-size:27px}

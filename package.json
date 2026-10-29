@@ -3,19 +3,30 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "workers:dev": "wrangler dev --local",
+    "pages:dev": "wrangler pages dev --config wrangler.pages.jsonc",
+    "deploy": "npm run build && wrangler deploy",
+    "pages:deploy": "npm run build && wrangler pages deploy --config wrangler.pages.jsonc",
+    "test": "npm run build && playwright test"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.4.1",
-    "vite": "^5.4.15",
-    "typescript": "^5.8.3",
+    "framer-motion": "^11.15.0",
+    "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "lucide-react": "^0.468.0",
-    "framer-motion": "^11.15.0"
+    "typescript": "^5.8.3",
+    "vite": "^5.4.15"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "wrangler": "4.155.0"
+  }
 }
