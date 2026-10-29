@@ -110,9 +110,9 @@ The **Our Favorite Tree** interlude follows year three, with a taped photograph 
 
 ### Adding music
 
-Set `songs[].url` to a legally available Spotify, YouTube Music, or similar share link. The soundtrack intentionally **opens that link** rather than pretending to stream audio or hosting copyrighted songs. Playback is controlled by the music provider.
+The favorite-song mixtape contains **K. — Cigarettes After Sex**, **From The Start — Laufey**, and **Itsumo — Dice & K9**, in that order. Each entry opens a Spotify search for the song and artist. Set `songs[].url` to a preferred recording's Spotify, YouTube Music, or similar share link when available, and update its `linkLabel` to describe the destination. Playback is controlled by the music provider.
 
-Canon in D is played directly by the browser from a gentle original instrumental arrangement of Pachelbel's public-domain composition, in `src/canonScore.js` and `src/canonPlayer.js`. It needs no external recording or audio download. Playback starts inside the Begin button's user gesture, never on page load. The floating music control and the Canon track in the mixtape pause/resume the same player. Opening an external song or playing a cinema video pauses the background music.
+Canon in D is played directly by the browser from a gentle original instrumental arrangement of Pachelbel's public-domain composition, in `src/canonScore.js` and `src/canonPlayer.js`. It needs no external recording or audio download. Playback starts inside the Begin button's user gesture, never on page load. The floating music control pauses/resumes the player. Opening a favorite song or playing a cinema video pauses the background music.
 
 ### Adding videos
 
@@ -144,7 +144,7 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - A closed envelope sealed with R. & D. replaces the finale button; opening it reveals the final message and a bouquet of her favorite tulips and sunflowers, with small daisies and greenery
 - The bouquet sways and its blooms move subtly; reduced motion disables these animations. It rests diagonally across the letter's lower-right edge. The complete final letter, signature, and bouquet fit the visible viewport without scrolling, adjusting to mobile browser bars and rotation; the close button keeps its full touch size
 - The hero-only cover opens with an outward photo burst and user-initiated Canon in D, with play/pause available while reading
-- The soundtrack is presented as a cassette sleeve and handwritten tracklist; Canon controls the background arrangement, while other linked songs open their original provider
+- The soundtrack is presented as a cassette sleeve and handwritten tracklist for the three favorite songs; their links open Spotify search, while the floating Canon control manages the background arrangement
 - Cinema cards use perforated ticket layouts, filmstrip previews, and keepsake numbers
 - Year two has a vertical photo-booth strip; year three has paired, tilted snapshots
 - Memory photos open in a paper-framed album with captions and accessible navigation

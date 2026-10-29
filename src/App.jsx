@@ -286,12 +286,12 @@ function Soundtrack({ music }) {
       <span className="song-index">0{i + 1}</span>
       <div className="song-details"><h3>{song.title}</h3><p>{song.artist}</p><small>{song.note}</small></div>
       {song.background ? <button className="song-play" onClick={music.toggle} aria-pressed={music.playing} aria-label={(music.playing ? 'Pause ' : 'Play ') + song.title}><Music2 size={17}/></button>
-        : song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" onClick={music.pause} aria-label={"Open " + song.title}><ExternalLink size={17}/></a>
+        : song.url ? <a className="song-play" href={song.url} target="_blank" rel="noopener noreferrer" onClick={music.pause} aria-label={song.linkLabel || "Open " + song.title} title={song.linkLabel || "Open " + song.title}><ExternalLink size={17}/></a>
         : <span className="song-pending" title="Song link coming soon"><Music2 size={17}/></span>}
       </motion.li>)}</ol>
       <span className="tracklist-signoff">a few songs to carry us back.</span>
     </div>
-    <p className="small-note">Canon in D accompanies our story. Other songs open in their original music player.</p>
+    <p className="small-note">Find our favorites on Spotify. Canon in D accompanies our story.</p>
   </section>;
 }
 
