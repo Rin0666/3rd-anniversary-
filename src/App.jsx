@@ -169,6 +169,8 @@ function Overview() {
 
 function MemoryCard({ memory, index, chapterIndex }) {
   const [secret, setSecret] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const noteId = `confession-${memory.id}`;
   const image = memory.image || demoMemoryImages[memory.id] || demo.one;
   return <motion.article {...reveal} className={"memory-card memory-card-" + index}>
     <div className="memory-photo-wrap">
@@ -180,11 +182,27 @@ function MemoryCard({ memory, index, chapterIndex }) {
       <span className="eyebrow">{memory.date}</span>
       <h3>{memory.title}</h3>
       <p>{memory.description}</p>
-      {memory.secret && <div className="memory-secret">
-        <button aria-expanded={secret} onClick={() => setSecret(!secret)}>
-          {secret ? "Fold this note away" : "What I was actually thinking?"} <span>{secret ? "−" : "+"}</span>
+      {memory.secret && <div className={`memory-secret scrapbook-confession note-paper-${(chapterIndex + index) % 3}${secret ? " is-unfolded" : ""}`}>
+        <button className="confession-toggle" id={`${noteId}-toggle`} aria-expanded={secret} aria-controls={noteId}
+          onClick={() => setSecret(!secret)}>
+          <span className="confession-stamp" aria-hidden="true"><Heart size={20} strokeWidth={1.3} /></span>
+          <span className="confession-heading">
+            <span className="confession-kicker">a little confession</span>
+            <span className="confession-title">What I was actually thinking…</span>
+            <span className="confession-invitation" aria-hidden="true">{secret ? "fold it back" : "unfold this little note"}
+              <svg viewBox="0 0 38 18" fill="none"><path d="M2 5C10 17 22 16 33 7M25 6L34 6L32 14" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </span>
+          </span>
         </button>
-        <AnimatePresence>{secret && <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>{memory.secret}</motion.p>}</AnimatePresence>
+        <AnimatePresence initial={false}>{secret && <motion.div className="confession-reveal" id={noteId} role="region"
+          aria-labelledby={`${noteId}-toggle`} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }} transition={{ duration: reducedMotion ? 0 : 0.3 }}>
+          <div className="confession-paper">
+            <span className="confession-margin" aria-hidden="true">p.s.</span>
+            <p>{memory.secret}</p>
+            <span className="confession-signoff" aria-hidden="true">a note to keep <Heart size={14} strokeWidth={1.2} /></span>
+          </div>
+        </motion.div>}</AnimatePresence>
       </div>}
     </div>
   </motion.article>;

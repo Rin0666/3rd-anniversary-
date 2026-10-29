@@ -92,9 +92,6 @@ h1,h2,h3,.polaroid strong,.overview-quote,.chapter-ending,.memory-copy h3{font-f
 .memory-copy h3{font-size:clamp(38px,5.3vw,61px);line-height:.97;margin:10px 0 15px}
 .memory-copy>p{max-width:500px;font-size:14px;color:#6b5150;line-height:1.85}
 .memory-secret{margin-top:17px;max-width:520px}
-.memory-secret button{background:#ead1b9;border:1px solid #cda88f;border-radius:50px;display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:11px;color:#6c3b40;padding:10px 15px;max-width:100%;min-height:40px}
-.memory-secret button span{font-size:18px}
-.memory-secret>p{overflow:hidden;max-width:450px;margin-top:12px;border-left:2px solid #a76367;padding:6px 0 6px 15px;color:#8e4d58;font-size:17px;font-family:'Caveat',cursive}
 .chapter-ending{text-align:center;font-size:clamp(37px,5.3vw,60px);line-height:1.1;margin:90px auto 28px;max-width:680px;color:#81505c}
 .chapter-ending span{display:block;font-family:'Caveat',cursive;font-size:42px}
 .chapter-next{display:flex;align-items:center;justify-content:center;gap:11px;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#935258;text-align:center}
@@ -104,8 +101,6 @@ h1,h2,h3,.polaroid strong,.overview-quote,.chapter-ending,.memory-copy h3{font-f
 .dark-chapter .chapter-star{color:#d99aa3}
 .dark-chapter .memory-copy>p{color:#c3aab1}
 .dark-chapter .memory-copy>.eyebrow{color:#e2a4a7}
-.dark-chapter .memory-secret button{background:#452633;border-color:#805663;color:#f7d6cf}
-.dark-chapter .memory-secret>p{color:#e5b5af}
 .dark-chapter .chapter-ending{color:#efc8bd}
 .dark-chapter .chapter-next{color:#e8b1a2}
 .chapter-tags{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin:-36px auto 56px}

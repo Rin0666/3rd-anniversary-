@@ -1,0 +1,68 @@
+.scrapbook-confession {
+  --note-paper: #f9edcf;
+  --note-ink: #784a50;
+  --note-tilt: -1.1deg;
+  position: relative;
+  margin-top: 30px;
+  border: 1px solid #ae8a6433;
+  border-radius: 2px 2px 5px 1px;
+  background: var(--note-paper);
+  background-image: radial-gradient(#997d4924 .6px, transparent .6px);
+  background-size: 5px 5px;
+  box-shadow: 2px 5px 0 #a5845e13, 0 7px 16px #43283018;
+  transform: rotate(var(--note-tilt));
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.note-paper-1 { --note-paper: #f2ddd5; --note-ink: #794753; --note-tilt: .9deg; }
+.note-paper-2 { --note-paper: #e7e8d5; --note-ink: #586251; --note-tilt: -.6deg; }
+.scrapbook-confession::before {
+  content: ''; position: absolute; z-index: 2; top: -11px; left: 17%; width: 68px; height: 23px;
+  background: repeating-linear-gradient(90deg, #dbc9a672 0 3px, #eadabe91 3px 5px);
+  border-inline: 2px dashed #cfba9b66;
+  box-shadow: 0 1px 2px #83644914;
+  transform: rotate(-8deg); pointer-events: none;
+}
+.scrapbook-confession::after {
+  content: ''; position: absolute; top: -1px; right: -1px; width: 19px; height: 19px;
+  background: linear-gradient(45deg, #b2946b30 49%, #fff8eb 50%);
+  box-shadow: -1px 1px 2px #664b2e13; pointer-events: none;
+}
+.scrapbook-confession:hover, .scrapbook-confession:focus-within, .scrapbook-confession.is-unfolded {
+  transform: rotate(0); box-shadow: 1px 7px 0 #a5845e10, 0 10px 22px #43283020;
+}
+.confession-toggle {
+  display: flex; align-items: center; gap: 14px; width: 100%; min-height: 116px;
+  padding: 23px 22px 18px 18px; border: 0; border-radius: 0; text-align: left;
+  background: transparent; color: var(--note-ink);
+}
+.confession-toggle:focus-visible { outline: 2px dashed var(--note-ink); outline-offset: 5px; }
+.confession-stamp {
+  flex: 0 0 37px; width: 37px; height: 37px; display: grid; place-items: center;
+  color: #fae8d2; background: #b56d77; border: 3px double #f7d8bd;
+  border-radius: 47% 53% 46% 54%; box-shadow: 1px 2px 3px #6c35492b; transform: rotate(-12deg);
+}
+.confession-heading { display: block; min-width: 0; }
+.confession-kicker { display: block; margin-bottom: 5px; font-size: 8px; line-height: 1.6; letter-spacing: 1.8px; text-transform: uppercase; opacity: .75; }
+.confession-title { display: block; font-family: 'Caveat', cursive; font-size: 26px; line-height: 1.15; font-weight: 500; }
+.confession-invitation { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-family: 'Caveat', cursive; font-size: 17px; line-height: 1.1; opacity: .75; }
+.confession-invitation svg { width: 32px; height: 18px; flex: 0 0 auto; transform: rotate(-5deg); transition: transform .25s ease; }
+.is-unfolded .confession-invitation svg { transform: rotate(170deg); }
+.confession-reveal { overflow: hidden; }
+.confession-paper {
+  position: relative; margin: 0 15px 12px; padding: 18px 12px 6px 34px; color: var(--note-ink);
+  border-top: 1px dashed #9a71554a;
+  background-image: linear-gradient(90deg, transparent 23px, #bc7e7747 23px, #bc7e7747 24px, transparent 24px),
+    repeating-linear-gradient(transparent 0 28px, #9d8a6e35 28px 29px);
+  background-position: 0 0, 0 10px;
+}
+.confession-paper p { margin: 0; font-family: 'Caveat', cursive; font-size: 24px; line-height: 29px; overflow-wrap: anywhere; white-space: pre-line; }
+.confession-margin { position: absolute; top: 20px; left: 0; font-family: 'Caveat', cursive; font-size: 16px; transform: rotate(-10deg); opacity: .7; }
+.confession-signoff { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-bottom: 5px; font-family: 'Caveat', cursive; font-size: 16px; line-height: 1.2; opacity: .75; }
+@media (max-width: 370px) {
+  .confession-toggle { gap: 10px; padding-inline: 13px; }
+  .confession-stamp { flex-basis: 30px; width: 30px; height: 30px; }
+  .confession-title { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scrapbook-confession, .confession-invitation svg { transition: none; }
+}

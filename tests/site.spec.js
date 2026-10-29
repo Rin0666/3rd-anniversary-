@@ -63,10 +63,21 @@ test('memory notes expand and fold away', async ({ page }) => {
   const toggle = memory.getByRole('button');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(memory.locator('.memory-secret > p')).toContainText('funny confession');
+  const note = memory.getByRole('region');
+  await expect(note).toContainText('funny confession');
+  await expect(note).toHaveAttribute('id', await toggle.getAttribute('aria-controls'));
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(memory.locator('.memory-secret > p')).toHaveCount(0);
+  await expect(note).toHaveCount(0);
+  const darkMemory = page.locator('#chapter-two .memory-card').first();
+  const darkToggle = darkMemory.getByRole('button');
+  await darkToggle.focus();
+  await darkToggle.press('Enter');
+  await expect(darkToggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(darkMemory.getByRole('region')).toBeVisible();
+  await expect(memory.getByRole('region')).toHaveCount(0);
+  await darkToggle.press('Enter');
+  await expect(darkMemory.getByRole('region')).toHaveCount(0);
 });
 
 test('every letter and the finale open, reveal their P.S., and close', async ({ page }) => {

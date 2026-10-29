@@ -118,7 +118,8 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - Cinematic hero and finale, warm torn-paper sections, Polaroid photographs, handwritten accents
 - Responsive tap targets, in-page navigation, smooth transitions, reduced-motion support
 - Gently falling roses that speed up with downward scrolling and rise with upward scrolling; hidden when reduced motion is preferred
-- Interactive hidden confessions, accessible modal close buttons and Escape handling
+- Confessions unfold from taped paper notes with handwritten headings, ruled pages, wax heart stamps, and cream/blush/sage variations; keyboard and touch interaction remain accessible
+- Accessible modal close buttons and Escape handling
 - Polaroids lift and reveal handwritten notes with hover, keyboard, or touch; a separate link opens each chapter
 - Botanical rose corners and handwritten memory labels carry the scrapbook theme through the chapters
 - Letters open with an unfolding envelope, lifted wax seal, and sliding paper; reduced motion skips the sequence
