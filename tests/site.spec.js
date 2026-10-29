@@ -72,7 +72,20 @@ test('chapter navigation survives a reload', async ({ page }) => {
   await navigation.getByRole('link', { name: 'Our favorite tree' }).click();
   await expect(page).toHaveURL(/#favorite-tree$/);
   await expect(page.getByRole('region', { name: 'Our Favorite Tree' }).getByRole('heading')).toBeInViewport();
-  await expect(page.getByRole('img', { name: 'An illustrated leafy tree keepsake' })).toBeVisible();
+  const tree = page.getByRole('region', { name: 'Our Favorite Tree' });
+  const treePhoto = tree.getByRole('img', { name: /Our favorite tree at night/ });
+  await expect(treePhoto).toBeVisible();
+  await expect.poll(() => treePhoto.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  const treeOpener = tree.getByRole('button', { name: /^View photo:/ });
+  await treeOpener.click();
+  const album = page.getByRole('dialog', { name: 'Our photo album' });
+  await expect(album.getByRole('heading')).toHaveText('Our Favorite Tree');
+  await expect(album.getByRole('status')).toHaveText('Photo 16 of 16');
+  await expect(album.locator('.sample-tag')).toHaveCount(0);
+  await expect.poll(() => album.locator('.album-photo img').evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(album).toHaveCount(0);
+  await expect(treeOpener).toBeFocused();
   await page.getByRole('link', { name: 'A song for the way this feels' }).click();
   await expect(page).toHaveURL(/#soundtrack$/);
   await expect(page.locator('#soundtrack h2')).toBeInViewport();
@@ -135,21 +148,53 @@ test('every letter and the finale open, reveal their P.S., and close', async ({ 
   await expect(finale).toHaveCount(0);
 });
 
-test('both cinema placeholders open and close', async ({ page }) => {
+test('both YouTube Shorts open on demand, fit the screen, and pause background music', async ({ page }) => {
+  const embedRequests = [];
+  // Exercise our dialogs without depending on YouTube's remote player or ads.
+  await page.route('https://www.youtube-nocookie.com/embed/**', route => {
+    embedRequests.push(route.request().url());
+    return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Video fixture</title><button>Play video</button>' });
+  });
   await enterStory(page);
-  for (const title of ['Our Little Movie', 'The Bloopers']) {
-    await page.getByRole('button', { name: new RegExp(title) }).click();
+  expect(embedRequests).toEqual([]);
+  await expect(page.locator('iframe')).toHaveCount(0);
+  const music = page.locator('.background-music-toggle');
+  for (const [title, id] of [['Our Pangasinan Trip', 'VXpxK8CZH1I'], ['A Dance Beneath Our Tree', '9rVjghE4Sj8']]) {
+    await music.click();
+    await expect(music).toHaveAttribute('aria-pressed', 'true');
+    const opener = page.getByRole('button', { name: new RegExp(title) });
+    await opener.click();
     const dialog = page.getByRole('dialog', { name: title, exact: true });
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('This little film is still waiting for its first scene.');
+    await expect(music).toHaveAttribute('aria-pressed', 'false');
+    const frame = dialog.locator('iframe');
+    await expect(frame).toHaveAttribute('title', title);
+    await expect(frame).toHaveAttribute('src', `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0`);
+    await expect.poll(() => embedRequests.some(url => url.includes(`/embed/${id}?`))).toBe(true);
+    await expect(frame).toBeInViewport({ ratio: .99 });
+    const originalViewport = page.viewportSize();
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expect(frame).toBeInViewport({ ratio: .99 });
+    await expect(dialog.getByRole('button', { name: 'Close video' })).toBeInViewport();
+    await page.setViewportSize(originalViewport);
+    const watch = dialog.getByRole('link', { name: 'Watch on YouTube' });
+    await expect(watch).toHaveAttribute('href', `https://www.youtube.com/shorts/${id}`);
+    await page.keyboard.press('Shift+Tab');
+    await expect(watch).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(dialog.getByRole('button', { name: 'Close video' })).toBeFocused();
     await dialog.getByRole('button', { name: 'Close video' }).click();
     await expect(dialog).toHaveCount(0);
+    await expect(page.locator('iframe')).toHaveCount(0);
+    await expect(opener).toBeFocused();
   }
 });
 
 test('the story works without remote media and fits the viewport', async ({ page }) => {
   await enterStory(page);
-  await expect(page.locator('.hero-photo .photo-fallback')).toBeVisible();
+  await expect(page.locator('.hero-photo img')).toBeVisible();
+  await expect.poll(() => page.locator('.hero-photo img').evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(page.locator('.sample-tag')).toHaveCount(0);
   for (const id of ['overview', 'chapter-one', 'chapter-two', 'chapter-three', 'favorite-tree', 'soundtrack', 'letters', 'cinema', 'finale']) {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await expect(page.locator(`#${id} h2`).first()).toBeVisible();
@@ -310,7 +355,7 @@ test('the photo album navigates, traps focus, and returns to its opener', async 
   const album = page.getByRole('dialog', { name: 'Our photo album' });
   const close = album.getByRole('button', { name: 'Close photo album' });
   await expect(album.getByRole('heading')).toHaveText('The day our worlds met');
-  await expect(album.getByRole('status')).toHaveText('Photo 1 of 9');
+  await expect(album.getByRole('status')).toHaveText('Photo 1 of 16');
   await expect(close).toBeFocused();
   expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
   await page.keyboard.press('Shift+Tab');
@@ -322,10 +367,10 @@ test('the photo album navigates, traps focus, and returns to its opener', async 
   await album.getByRole('button', { name: 'Previous photo' }).click();
   await expect(album.getByRole('heading')).toHaveText('The day our worlds met');
   await page.keyboard.press('ArrowLeft');
-  await expect(album.getByRole('heading')).toHaveText('And here we are');
-  await expect(album.getByRole('status')).toHaveText('Photo 9 of 9');
+  await expect(album.getByRole('heading')).toHaveText('Our Favorite Tree');
+  await expect(album.getByRole('status')).toHaveText('Photo 16 of 16');
   await page.keyboard.press('ArrowRight');
-  await expect(album.getByRole('status')).toHaveText('Photo 1 of 9');
+  await expect(album.getByRole('status')).toHaveText('Photo 1 of 16');
   await page.keyboard.press('Escape');
   await expect(album).toHaveCount(0);
   await expect(opener).toBeFocused();
@@ -339,17 +384,25 @@ test('photo strips and paired snapshots open the corresponding memory', async ({
   else await stripPhoto.click();
   const album = page.getByRole('dialog', { name: 'Our photo album' });
   await expect(album.getByRole('heading')).toHaveText('Anywhere, as long as it’s you');
-  await expect(album.getByRole('status')).toHaveText('Photo 4 of 9');
+  await expect(album.getByRole('status')).toHaveText('Photo 4 of 16');
   await album.getByRole('button', { name: 'Close photo album' }).click();
   await expect(album).toHaveCount(0);
   const pairedPhoto = page.locator('.snapshot-pair .photo-open').nth(1);
   if (testInfo.project.name === 'mobile') await pairedPhoto.tap();
   else await pairedPhoto.click();
   await expect(album.getByRole('heading')).toHaveText('Home looks a lot like you');
-  await expect(album.getByRole('status')).toHaveText('Photo 8 of 9');
+  await expect(album.getByRole('status')).toHaveText('Photo 8 of 16');
   await album.getByRole('button', { name: 'Close photo album' }).click();
   await expect(album).toHaveCount(0);
   await expect(pairedPhoto).toBeFocused();
+  for (const title of ['One more smile to keep', 'You & me', 'Still my favorite view']) {
+    const keepsake = page.locator('.camera-roll-keepsake').filter({ hasText: title });
+    await keepsake.locator('.photo-open').click();
+    await expect(album.getByRole('heading')).toHaveText(title);
+    await expect(album.locator('.sample-tag')).toHaveCount(0);
+    await album.getByRole('button', { name: 'Close photo album' }).click();
+    await expect(album).toHaveCount(0);
+  }
 });
 
 test('ribbon bookmarks follow the chapter and navigate between years', async ({ page }) => {
@@ -379,7 +432,7 @@ test.describe('dialog background stability', () => {
     const cases = [
       [page.locator('#chapter-one .memory-card .photo-open').first(), 'Our photo album', 'Close photo album'],
       [page.getByRole('button', { name: /When You Miss Me/ }), 'When You Miss Me', 'Close letter'],
-      [page.getByRole('button', { name: /Our Little Movie/ }), 'Our Little Movie', 'Close video'],
+      [page.getByRole('button', { name: /Our Pangasinan Trip/ }), 'Our Pangasinan Trip', 'Close video'],
     ];
     for (const [opener, title, closeName] of cases) {
       await opener.scrollIntoViewIfNeeded();
@@ -402,7 +455,7 @@ test.describe('dialog background stability', () => {
     const cases = [
       [page.locator('#chapter-one .memory-card .photo-open').first(), 'Our photo album', 'Close photo album', '.photo-album'],
       [page.getByRole('button', { name: /When You Miss Me/ }), 'When You Miss Me', 'Close letter', '.letter-modal'],
-      [page.getByRole('button', { name: /Our Little Movie/ }), 'Our Little Movie', 'Close video', '.cinema-modal'],
+      [page.getByRole('button', { name: /Our Pangasinan Trip/ }), 'Our Pangasinan Trip', 'Close video', '.cinema-modal'],
       [page.getByRole('button', { name: 'Open our final letter' }), 'My Favorite Story Is Us', 'Close letter', '.letter-modal'],
     ];
     for (const [opener, title, closeName, surfaceSelector] of cases) {

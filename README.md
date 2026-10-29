@@ -1,6 +1,6 @@
 # Three Years, Still You ♡
 
-A mobile-first, scroll-driven cinematic anniversary website: sunset opening, three scrapbook chapters, interactive memories, soundtrack, love-letter vault, cinema and a grand finale.
+A mobile-first, scroll-driven cinematic anniversary website: lakeside opening, three scrapbook chapters, interactive memories, soundtrack, love-letter vault, cinema and a grand finale.
 
 The opening shows only the hero and **Begin Our Story**. That click starts Canon in D, sends Polaroid photographs outward, and unlocks the scrollable scrapbook. Reduced motion skips the large burst. The story opens at the overview, or at the requested chapter for a section link; a reload returns to the opening cover.
 
@@ -77,7 +77,7 @@ Illustrative photos and fonts load from Unsplash and Google Fonts. The site stil
 
 ## Customize the experience
 
-All personal stories, chapter text, letters, track links and videos are in **`src/content.js`**. The app intentionally uses sample copy and illustrative photographs until you replace them. No real anniversary images or music have been uploaded.
+All personal stories, chapter text, letters, track links and videos are in **`src/content.js`**. The cover, year-by-year photographs, camera-roll snapshots, and favorite tree use the supplied photos. The story text and letters remain editable sample copy. Canon in D is generated in the browser, and the favorite-song links open Spotify.
 
 | Content | Where to edit |
 | --- | --- |
@@ -86,6 +86,8 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Days together and calendar timezone | `settings.relationshipStartDate`, `settings.timeZone` |
 | Seal initials and final signature | `settings.monogram`, `settings.signature` |
 | Three years and their memories | `chapters[].memories` |
+| Extra year-two and year-three strip/snapshot photos | `chapters[].extraPhotos`, `chapters[].keepsakeIds` |
+| Camera-roll Polaroids tucked into each year | `looseSnapshots` |
 | Favorite tree photo, crop, caption, and note | `favoriteTree` |
 | Song names, artist, listen URL | `songs` |
 | Cinema videos and cover images | `films` |
@@ -100,13 +102,15 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 
 ### Replacing a photo
 
-The opening and finale share `settings.heroImage`; leave it empty to keep the labeled illustrative sunset photo. Set `settings.heroImageAlt` and adjust `settings.heroImagePosition` to keep your subject in the crop. The opening adds a sunset tint, vignette, and fine film texture.
+The opening and finale share `settings.heroImage`, currently the supplied lakeside cover photo. Set `settings.heroImageAlt` and adjust `settings.heroImagePosition` to keep your subject in the crop. An empty value restores the illustrative fallback. The opening adds a warm tint, vignette, and fine film texture.
+
+All 16 photographs from the uploaded ZIP are used: one shared cover, nine main memory photos, three extra chapter keepsakes, and three camera-roll Polaroids spread across the years. The separately uploaded tree photo brings the total to 17. Browser-ready copies are in `public/media/photos/`, converted to WebP with a maximum edge of 1600 pixels, sRGB color, and embedded metadata removed. Original HEIC/JPG uploads are kept outside the repository. Overview cards and the opening photo burst reuse the real memory photos; the album contains the 16 non-cover photographs.
 
 In `src/content.js`, set each memory's `image` to a valid, accessible URL, e.g. `image: "/media/my-memory.webp"` **only when the site is secured and the photo is not private**. For personal media, prefer an authenticated asset endpoint backed by private Cloudflare R2, then reference those protected URLs. For now, blank `image` values use illustrative photos, with a **SAMPLE PHOTO** label.
 
 Memory photographs, chapter photos, the year-two photo-booth strip, and year-three paired snapshots open the shared album viewer. It uses the memory title, date label, description, and optional `memory.alt` text. The viewer supports previous/next buttons, left/right arrow keys, Escape, focus trapping, and focus restoration. Overview Polaroids keep their separate note-reveal interaction.
 
-The **Our Favorite Tree** interlude follows year three, with a taped photograph and a ruled-paper note. Set `favoriteTree.image` to the tree photo's URL and adjust `favoriteTree.imagePosition` for its crop. Once configured, the photo opens in the shared album. Until the real photo is supplied, the section shows a labeled botanical illustration. Its caption and note are editable in `src/content.js`.
+The **Our Favorite Tree** interlude follows year three, with the supplied nighttime photograph in a portrait frame and a ruled-paper note. The HEIC upload was converted to a 1200 × 1600 WebP at `public/media/photos/favorite-tree.webp`, with embedded metadata removed. The photo opens in the shared album. Set `favoriteTree.image` and `favoriteTree.imagePosition` to change the photo and crop; its caption and note are also editable in `src/content.js`. An empty image setting restores the labeled botanical illustration.
 
 ### Adding music
 
@@ -116,7 +120,9 @@ Canon in D is played directly by the browser from a gentle original instrumental
 
 ### Adding videos
 
-Set `films[].src` to an accessible video URL and optionally `films[].poster` to a poster image. Video plays in a modal with native controls only after the visitor opens it. Empty `src` displays an editable placeholder.
+Both supplied YouTube Shorts are embedded in the cinema: **Our Pangasinan Trip** (`VXpxK8CZH1I`) and **A Dance Beneath Our Tree** (`9rVjghE4Sj8`). Each opens a portrait player that fits the viewport, with fullscreen support and a direct YouTube link. Opening either pauses Canon in D. The privacy-enhanced `youtube-nocookie.com` iframe loads only when a film is opened, and closing it removes the player. The dance poster comes from the uploaded clip; the original MOV and temporary MP4 are not bundled.
+
+Set `films[].youtubeId` to a YouTube video ID, and optionally `films[].poster` and `films[].posterAlt` to a poster and description. A film without `youtubeId` can instead use an accessible MP4 URL in `films[].src`, including a public Cloudflare R2 URL. Direct videos open paused with native controls and inline playback; starting playback pauses Canon in D. A film with neither source displays a placeholder.
 
 ### Editing letters
 
@@ -171,7 +177,7 @@ On Linux, `npx playwright install --with-deps chromium` can install the browser'
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test
 ```
 
-The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, Polaroid interactions, photo album navigation/focus/wrapping, photo-strip and snapshot entry points, active chapter ribbons, monograms/signatures, letter animation and keyboard focus, finale lighting, cinema placeholders, falling roses and scroll direction, reduced motion, the anniversary counter across Manila midnight, and JavaScript errors. Date arithmetic also has Node.js tests for leap days, timezone boundaries, and invalid dates. Browser tests deliberately block optional external images and fonts to check graceful fallback behavior. Personal song links and video playback require your own media in `src/content.js` and are not covered by placeholder tests.
+The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, Polaroid interactions, photo album navigation/focus/wrapping, photo-strip and camera-roll snapshot entry points, active chapter ribbons, monograms/signatures, letter animation and keyboard focus, finale lighting, both YouTube embed destinations and music pausing, falling roses and scroll direction, reduced motion, the anniversary counter across Manila midnight, and JavaScript errors. Date arithmetic also has Node.js tests for leap days, timezone boundaries, and invalid dates. Browser tests block optional external requests while verifying local personal images still load. A local iframe fixture verifies on-demand embeds, portrait/landscape sizing, focus, and cleanup without depending on YouTube's live player. Actual YouTube and Spotify playback is controlled by those providers.
 
 GitHub Actions installs with `npm ci`, builds the site, runs this suite, and uploads the successful `dist/` build as the `anniversary-site` artifact. This workflow validates the site; Cloudflare's Git integration handles deployment. Inspect the real Cloudflare deployment log and test on a phone before sharing the final site.
 

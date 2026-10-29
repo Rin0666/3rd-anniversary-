@@ -8,7 +8,7 @@
 .tree-keepsake-layout { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 64px; max-width: 880px; margin: 58px auto 46px; }
 .tree-photo-keepsake { position: relative; min-width: 0; margin: 0; padding: 12px 12px 0; background: #faf3e7; border: 1px solid #d7d3bb; box-shadow: 3px 10px 26px #4d523323; transform: rotate(-3deg); }
 .tree-washi { position: absolute; z-index: 2; top: -13px; left: calc(50% - 46px); width: 92px; height: 28px; background: repeating-linear-gradient(90deg,#abae7b66 0 7px,#c3c39755 7px 8px); transform: rotate(7deg); clip-path: polygon(2% 0,100% 7%,97% 40%,100% 92%,0 100%,3% 55%); }
-.tree-photo-window { position: relative; aspect-ratio: 1; background: #ecead8; overflow: hidden; }
+.tree-photo-window { position: relative; aspect-ratio: 3 / 4; background: #ecead8; overflow: hidden; }
 .tree-photo-window > .photo { height: 100%; }
 .tree-photo-window img { object-position: var(--tree-photo-focus,center); }
 .tree-illustration { display: block; width: 100%; height: 100%; }

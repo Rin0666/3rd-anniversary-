@@ -9,4 +9,5 @@ import './floral-gifts.css';
 import './story-opening.css';
 import './fitted-letter.css';
 import './favorite-tree.css';
+import './personal-media.css';
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);

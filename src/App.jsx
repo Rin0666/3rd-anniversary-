@@ -4,7 +4,7 @@ import {
   ArrowDown, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
   Film, Heart, Mail, Menu, Music2, Play, RotateCcw, X
 } from "lucide-react";
-import { settings, chapters, songs, films, letters, finale, favoriteTree } from "./content";
+import { settings, chapters, songs, films, letters, finale, favoriteTree, looseSnapshots } from "./content";
 import FallingRoses from "./FallingRoses";
 import AnniversaryCounter from "./AnniversaryCounter";
 import FloralSprig from "./FloralSprig";
@@ -19,6 +19,7 @@ import useCanonMusic from "./useCanonMusic";
 import { BackgroundMusic, StoryBurst } from "./StoryOpening";
 import FittedLetter from "./FittedLetter";
 import FavoriteTree from "./FavoriteTree";
+import LooseSnapshot from "./LooseSnapshot";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -43,11 +44,15 @@ const demoMemoryImages = {
   today: demo.three
 };
 const memoryImage = memory => memory.image || demoMemoryImages[memory.id] || demo.one;
-const albumPhotos = chapters.flatMap(chapter => chapter.memories.map(memory => ({
+const albumPhotos = [
+  ...chapters.flatMap(chapter => chapter.memories),
+  ...chapters.flatMap(chapter => chapter.extraPhotos || []),
+  ...looseSnapshots
+].map(memory => ({
   id: memory.id, src: memoryImage(memory), title: memory.title, date: memory.date,
   caption: memory.description, sample: !memory.image,
   alt: memory.image ? (memory.alt || memory.title) : `Illustrative photo for ${memory.title}`
-}))).concat(favoriteTree.image ? [{
+})).concat(favoriteTree.image ? [{
   id: 'favorite-tree', src: favoriteTree.image, alt: favoriteTree.alt,
   title: favoriteTree.title, date: favoriteTree.eyebrow, caption: favoriteTree.note, sample: false
 }] : []);
@@ -145,9 +150,9 @@ function Hero({ phase, onBegin }) {
   </section>;
 }
 
-function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note, noteId, expanded }) {
+function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note, noteId, expanded, sample = false, position }) {
   return <div className={"polaroid" + (expanded ? " is-open" : "")} style={{ "--rotation": rotation }}>
-    <Photo src={image} alt={alt || "Illustrative couple photograph"} sample />
+    <Photo src={image} alt={alt || "Illustrative couple photograph"} sample={sample} position={position} />
     <div className="polaroid-caption">{number && <b>{number}</b>}<div><strong>{title}</strong><em>{subtitle}</em></div></div>
     <div className="polaroid-note-slot" data-expanded={expanded}>
       <span className="polaroid-note" id={noteId} aria-hidden={!expanded}>{note}</span>
@@ -164,14 +169,15 @@ function OverviewCard({ chapter, index, image, label }) {
       onPointerEnter={event => { if (event.pointerType === "mouse") setExpanded(true); }}
       onPointerLeave={event => { if (event.pointerType === "mouse") setExpanded(false); }}>
       <Polaroid image={image} title={"Year " + (index + 1)} subtitle={label} number={index + 1}
-        rotation={index % 2 ? "3deg" : "-3deg"} note={chapter.quote} expanded={expanded} noteId={`polaroid-note-${chapter.id}`} />
+        rotation={index % 2 ? "3deg" : "-3deg"} note={chapter.quote} expanded={expanded} noteId={`polaroid-note-${chapter.id}`}
+        alt={chapter.memories[0]?.alt} position={chapter.memories[0]?.imagePosition} sample={!chapter.memories[0]?.image} />
     </button>
     <a className="chapter-open" href={"#chapter-" + chapter.id}>Turn to year {index + 1} <ArrowRight size={13} /></a>
   </motion.div>;
 }
 
 function Overview() {
-  const images = [demo.one, demo.two, demo.three];
+  const images = chapters.map(chapter => memoryImage(chapter.memories[0]));
   const labels = ["The Beginning", "Growing Together", "Still You"];
   return <section className="paper-section overview" id="overview">
     <FloralSprig className="floral-corner-top" />
@@ -193,7 +199,7 @@ function MemoryCard({ memory, index, chapterIndex }) {
   return <motion.article {...reveal} className={"memory-card memory-card-" + index}>
     <div className="memory-photo-wrap">
       <Photo src={image} alt={memory.image ? (memory.alt || memory.title) : "Illustrative photo for " + memory.title}
-        sample={!memory.image} onOpen={() => openPhoto(memory.id)} />
+        sample={!memory.image} position={memory.imagePosition} onOpen={() => openPhoto(memory.id)} />
       <div className="tape" aria-hidden="true" />
       <span className="memory-date">{memory.date}</span>
     </div>
@@ -229,12 +235,15 @@ function MemoryCard({ memory, index, chapterIndex }) {
 
 function ChapterKeepsakes({ chapter, paired = false }) {
   const openPhoto = usePhotoAlbum();
-  const memories = paired ? chapter.memories.slice(0, 2) : chapter.memories.slice(0, 3);
+  const available = [...chapter.memories, ...(chapter.extraPhotos || [])];
+  const memories = chapter.keepsakeIds
+    ? chapter.keepsakeIds.map(id => available.find(photo => photo.id === id)).filter(Boolean)
+    : chapter.memories.slice(0, paired ? 2 : 3);
   return <div className={paired ? "paired-snapshots" : "chapter-keepsakes"}>
     <div className={paired ? "snapshot-pair" : "photo-booth-strip"}>
       {memories.map((memory, index) => <figure key={memory.id} className="keepsake-frame">
         <Photo src={memoryImage(memory)} alt={memory.image ? (memory.alt || memory.title) : `Illustrative photo for ${memory.title}`}
-          sample={!memory.image} onOpen={() => openPhoto(memory.id)} />
+          sample={!memory.image} position={memory.imagePosition} onOpen={() => openPhoto(memory.id)} />
         <figcaption>{paired ? memory.title : `${String(index + 1).padStart(2, '0')} / ${chapter.year}`}</figcaption>
       </figure>)}
       {!paired && <span className="booth-strip-label">US, ON REPEAT ♡</span>}
@@ -256,13 +265,15 @@ function Chapter({ chapter, index }) {
     </div>
     {index === 0 ? <div className="chapter-hero-image">
       <Photo src={chapter.memories[0]?.image || [demo.one, demo.two, demo.three][index]}
-        alt={chapter.memories[0]?.image ? chapter.memories[0].title : "Illustrative chapter " + (index + 1) + " photograph"}
+        alt={chapter.memories[0]?.image ? (chapter.memories[0].alt || chapter.memories[0].title) : "Illustrative chapter " + (index + 1) + " photograph"}
+        position={chapter.memories[0]?.imagePosition}
         sample={!chapter.memories[0]?.image} onOpen={chapter.memories[0] ? () => openPhoto(chapter.memories[0].id) : undefined} />
       <div className="chapter-image-caption">CHAPTER {index + 1} <span>·</span> {chapter.year}</div>
     </div> : <ChapterKeepsakes chapter={chapter} paired={index === 2} />}
     {index === 1 && <div className="chapter-tags"><span>ALL MEMORIES</span><span>ADVENTURES</span><span>LAUGHTER</span><span>LITTLE THINGS</span></div>}
     {index === 2 && <div className="paper-note"><span>THE LITTLE THINGS</span><p>Our morning texts<br/>Our late night talks<br/>Finding comfort in silence<br/>Still choosing each other</p><i>♡</i></div>}
     <div className="memory-stream">{chapter.memories.map((m, i) => <MemoryCard key={m.id} memory={m} index={i} chapterIndex={index} />)}</div>
+    {looseSnapshots.filter(photo => photo.chapterId === chapter.id).map(photo => <LooseSnapshot key={photo.id} photo={photo} reversed={index % 2 === 1} />)}
     <motion.blockquote {...reveal} className="chapter-ending">“{chapter.quote}”<span>♡</span></motion.blockquote>
     <a className="chapter-next" href={index === 2 ? "#favorite-tree" : "#chapter-" + chapters[index + 1].id}>Keep scrolling through our story <ArrowDown size={16}/></a>
     {index !== 1 && <div className={"torn-edge " + (index === 0 ? "torn-dark" : "torn-dark")} />}
@@ -357,21 +368,27 @@ function Cinema({ music }) {
   const [active, setActive] = useState(null);
   const closeRef = useDialog(Boolean(active), () => setActive(null));
   return <section className="cinema-section" id="cinema">
-    <SectionHeading number="06" eyebrow="PRESS PLAY ON OUR FAVORITE MOMENTS" title="Our Little Cinema" caption="Some memories are better in motion. Even the embarrassing ones."/>
-    <div className="cinema-list">{films.map((film, i) => <motion.button {...reveal} className={"cinema-card cinema-card-" + i} key={film.id} onClick={() => setActive(film)}>
+    <SectionHeading number="06" eyebrow="PRESS PLAY ON OUR FAVORITE MOMENTS" title="Our Little Cinema" caption="Little adventures, a favorite tree, and a few moments worth replaying."/>
+    <div className="cinema-list">{films.map((film, i) => <motion.button {...reveal} className={"cinema-card cinema-card-" + i} key={film.id} onClick={() => { if (film.youtubeId) music.pause(); setActive(film); }}>
       <span className="ticket-header"><span>OUR LITTLE CINEMA</span><span>ADMIT TWO ♡</span></span>
       <span className="ticket-layout">
-        <span className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={"Illustrative preview for " + film.title} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></span>
+        <span className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={film.posterAlt || "Illustrative preview for " + film.title} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></span>
         <span className="ticket-details"><span className="eyebrow">FILM 0{i + 1}</span><span className="ticket-title">{film.title}</span><span className="ticket-subtitle">{film.subtitle}</span>
-          <span className="cinema-link">{film.src ? "Watch this memory" : "Preview this film"} <ArrowRight size={15}/></span>
+          <span className="cinema-link">{film.youtubeId || film.src ? "Watch this memory" : "Preview this film"} <ArrowRight size={15}/></span>
         </span>
         <span className="ticket-stub" aria-hidden="true"><span>KEEPSAKE</span><strong>00{i + 1}</strong><span className="ticket-barcode" /><span>♥</span></span>
       </span>
     </motion.button>)}</div>
     <AnimatePresence>{active && <DialogBackdrop onClose={() => setActive(null)}>
-      <div className="cinema-modal" role="dialog" aria-modal="true" aria-label={active.title}>
+      <div className={"cinema-modal" + (active.youtubeId ? " youtube-cinema" : "")} role="dialog" aria-modal="true" aria-label={active.title}>
         <button ref={closeRef} className="modal-close" onClick={() => setActive(null)} aria-label="Close video"><X size={20}/></button>
-        {active.src ? <video key={active.src} controls playsInline src={active.src} poster={active.poster || undefined} onPlay={music.pause} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>This little film is still waiting for its first scene.</p></div>}
+        {active.youtubeId ? <>
+          <div className="youtube-player"><iframe key={active.youtubeId} title={active.title}
+            src={`https://www.youtube-nocookie.com/embed/${active.youtubeId}?playsinline=1&rel=0`}
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /></div>
+          <a className="youtube-watch-link" href={`https://www.youtube.com/shorts/${active.youtubeId}`} target="_blank" rel="noopener noreferrer">Watch on YouTube <ExternalLink size={13}/></a>
+        </> : active.src ? <video key={active.src} controls playsInline preload="metadata" aria-label={active.title} src={active.src} poster={active.poster || undefined} onPlay={music.pause} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>This little film is still waiting for its first scene.</p></div>}
       </div>
     </DialogBackdrop>}</AnimatePresence>
   </section>;
@@ -382,7 +399,7 @@ function Finale() {
   const [arrived, setArrived] = useState(false);
   return <motion.section className={"finale" + (arrived ? " has-arrived" : "") + (show ? " has-letter-open" : "")} id="finale"
     onViewportEnter={() => setArrived(true)} viewport={{ once: true, amount: 0.15 }}>
-    <Photo className="finale-photo" src={settings.heroImage || demo.hero} alt={settings.heroImage ? settings.heroImageAlt : "Illustrative sunset photograph of a couple"} sample={!settings.heroImage} />
+    <Photo className="finale-photo" src={settings.heroImage || demo.hero} alt={settings.heroImage ? settings.heroImageAlt : "Illustrative sunset photograph of a couple"} position={settings.heroImagePosition} sample={!settings.heroImage} />
     <div className="finale-shade" />
     <div className="finale-warmth" aria-hidden="true" />
     <div className="film-grain" aria-hidden="true" />

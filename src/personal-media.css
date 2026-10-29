@@ -1,0 +1,16 @@
+.camera-roll-keepsake { position: relative; width: min(100%,340px); margin: 72px auto 12px; text-align: center; }
+.camera-roll-heading { display: block; margin-bottom: 20px; font-family: 'Caveat',cursive; font-size: 23px; color: #9c6570; transform: rotate(-4deg); }
+.camera-roll-keepsake figure { position: relative; margin: 0 14px; padding: 9px 9px 15px; background: #fff7e9; color: #84545f; box-shadow: 2px 9px 25px #3a1b2933; transform: rotate(var(--snapshot-rotation)); }
+.camera-roll-keepsake .photo { aspect-ratio: var(--snapshot-ratio); }
+.camera-roll-keepsake figcaption { padding: 15px 2px 0; font-family: 'Caveat',cursive; font-size: 24px; line-height: 1.15; }
+.camera-roll-keepsake figcaption > span { display: inline-block; margin-left: 6px; color: #b7787a; }
+.camera-roll-tape { position: absolute; z-index: 3; top: -12px; left: calc(50% - 40px); width: 80px; height: 25px; background: repeating-linear-gradient(45deg,#d0ada77a 0 6px,#e0c0b966 6px 12px); transform: rotate(5deg); clip-path: polygon(2% 3%,100% 0,97% 46%,100% 96%,0 100%,3% 50%); }
+.camera-roll-footnote { display: block; margin: 19px 0 0 100px; font-family: 'Caveat',cursive; font-size: 19px; color: #9c6570; transform: rotate(-5deg); }
+.dark-chapter .camera-roll-heading, .dark-chapter .camera-roll-footnote { color: #d4a0a1; }
+.cinema-modal.youtube-cinema { width: auto; max-width: 100%; }
+.youtube-player { width: min(390px,calc((100svh - 160px) * .5625),calc(100vw - 56px)); aspect-ratio: 9 / 16; background: #080608; }
+.youtube-player iframe { display: block; width: 100%; height: 100%; border: 0; }
+.youtube-watch-link { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; color: #ead0c6; font-size: 11px; }
+@media (prefers-reduced-motion: reduce) {
+  .camera-roll-keepsake { transition: none; }
+}

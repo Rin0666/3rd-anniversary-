@@ -17,7 +17,7 @@ export default function useDialog(isOpen, onClose) {
       if (event.key === 'Tab') {
         const modal = closeRef.current?.closest('[role="dialog"]');
         if (!modal) return;
-        const nodes = [...modal.querySelectorAll('button:not([disabled]),a[href],video[controls]')];
+        const nodes = [...modal.querySelectorAll('button:not([disabled]),a[href],video[controls],iframe')];
         if (!nodes.length) return;
         const first = nodes[0], last = nodes[nodes.length - 1];
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
