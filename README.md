@@ -36,7 +36,7 @@ npm run build
 npm run workers:dev
 ```
 
-For a direct deployment with the intended Cloudflare account already authenticated, use `npm run deploy`. The development workflow is to validate each change and then deploy it. The browser suite uses Cloudflare's local Workers runtime; local tests do not publish the site.
+The normal development workflow is to validate each change, commit it, and push it to GitHub `main`. Cloudflare automatically builds and deploys that update through its Git integration. For a direct deployment with the intended Cloudflare account already authenticated, `npm run deploy` is also available. The browser suite uses Cloudflare's local Workers runtime; local tests do not publish the site.
 
 ## Optional Cloudflare Pages deployment
 
