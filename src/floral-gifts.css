@@ -1,0 +1,49 @@
+.scroll-butterflies { position: fixed; inset: 0; z-index: 9; overflow: hidden; pointer-events: none; contain: strict; }
+.scroll-butterfly { position: absolute; top: 0; left: 0; aspect-ratio: 1.2; will-change: transform; }
+.scroll-butterfly svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 3px #3521311a); }
+.butterfly-wings { transform-box: view-box; transform-origin: 24px 21px; animation: butterfly-flutter .65s ease-in-out infinite alternate; }
+@keyframes butterfly-flutter { from { transform: scaleX(.45); } to { transform: scaleX(1); } }
+
+/* The final invitation is a sealed envelope, with its own fixed footprint. */
+.final-envelope-trigger { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 100%; margin: 20px auto 0; padding: 16px 12px 8px; border: 0; background: none; color: #efc7b6; }
+.final-envelope { position: relative; display: block; width: min(290px, 65vw); aspect-ratio: 1.6; filter: drop-shadow(0 13px 17px #08040d66); transform: rotate(-2deg); transition: transform .35s ease, filter .35s ease; }
+.final-envelope-trigger:hover .final-envelope, .final-envelope-trigger:focus-visible .final-envelope { transform: translateY(-4px) rotate(0); filter: drop-shadow(0 18px 23px #08040d80); }
+.final-envelope-back, .final-envelope-front, .final-envelope-flap { position: absolute; inset: 0; border-radius: 3px; }
+.final-envelope-back { background: #dcb895; border: 1px solid #e8cfad; }
+.final-envelope-front { background: linear-gradient(135deg, #f2debe, #e5c8a5); clip-path: polygon(0 0,50% 46%,100% 0,100% 100%,0 100%); }
+.final-envelope-flap { height: 62%; background: linear-gradient(#efdab8,#d0aa88); clip-path: polygon(0 0,100% 0,50% 100%); }
+.final-envelope-stamp { position: absolute; z-index: 1; top: 44%; left: 50%; translate: -50% -50%; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 48% 52% 46% 54%; border: 3px double #dd9d94; background: radial-gradient(circle at 35% 30%,#bb7280,#80394d); color: #f4d2b9; box-shadow: 0 3px 6px #7d3a4933; }
+.final-envelope-stamp .seal-mark { font-size: 16px; }
+.final-envelope-address { position: absolute; bottom: 17px; left: 8px; right: 8px; font-family: 'Caveat',cursive; font-size: 23px; color: #9a6c6a; text-align: center; }
+.final-envelope-label { font-family: 'Caveat',cursive; font-size: 27px; line-height: 1.2; }
+.final-envelope-hint { font-size: 9px; letter-spacing: 1.7px; color: #c39695; }
+
+/* Both the letter and bouquet are opaque surfaces above the page. */
+.letter-presentation { padding-bottom: 0; }
+.letter-panel { position: relative; padding-bottom: 28px; }
+.final-letter-presentation { width: min(100%,1060px); max-height: 90svh; overflow-y: auto; overscroll-behavior: contain; padding: 8px 8px 4px; }
+.final-gift-layout { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(235px,.9fr); gap: 24px; align-items: center; }
+.final-letter-presentation .letter-modal { max-height: none; overflow: visible; }
+.photo-album, .letter-presentation .letter-modal, .final-letter-presentation { scrollbar-gutter: stable; }
+.final-letter-presentation > .modal-close { position: sticky; top: 0; z-index: 5; margin: 0 0 -40px auto; border: 1px solid #d9bfa6; border-radius: 50%; background: #f4e8d8; color: #7a535b; box-shadow: 0 2px 6px #35202922; }
+.bouquet-keepsake { padding: 26px 12px 17px; background: #f2e4ce; border: 1px solid #d1b694; color: #9e6c76; box-shadow: 0 15px 35px #08040d44; }
+.bouquet-eyebrow { display: block; text-align: center; font-size: 7px; letter-spacing: 1.7px; }
+.flower-bouquet { margin: 10px 0 0; }
+.bouquet-art { display: block; width: 100%; max-height: 425px; overflow: visible; transform-origin: 50% 90%; animation: bouquet-sway 7s ease-in-out infinite; }
+.bouquet-bloom { transform-box: fill-box; transform-origin: center bottom; animation: bouquet-breathe 5.5s ease-in-out var(--bloom-delay,0s) infinite alternate; }
+.flower-bouquet figcaption { margin-top: 10px; font-family: 'Caveat',cursive; font-size: 23px; text-align: center; line-height: 1.2; }
+@keyframes bouquet-sway { 0%,100% { transform: rotate(-1.25deg); } 50% { transform: rotate(1.25deg); } }
+@keyframes bouquet-breathe { from { transform: scale(.99); } to { transform: scale(1.02); } }
+@media (max-width: 760px) {
+  .final-gift-layout { grid-template-columns: minmax(0,1fr); gap: 10px; }
+  .final-letter-presentation { width: min(100%,610px); }
+  .bouquet-keepsake { width: min(100%,340px); justify-self: center; padding-inline: 22px; margin-bottom: 8px; }
+  .bouquet-art { max-height: 370px; }
+  .letter-panel { padding-bottom: 20px; }
+}
+@media (max-width: 700px) { .scroll-butterfly:nth-child(n+3) { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .scroll-butterflies { display: none; }
+  .butterfly-wings, .bouquet-art, .bouquet-bloom { animation: none; }
+  .final-envelope { transition: none; }
+}

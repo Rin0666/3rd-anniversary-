@@ -98,7 +98,7 @@ test('every letter and the finale open, reveal their P.S., and close', async ({ 
     await expect(dialog).toHaveCount(0);
     await expect(envelope).toBeFocused();
   }
-  await page.getByRole('button', { name: "Here's to Forever" }).click();
+  await page.getByRole('button', { name: 'Open our final letter' }).click();
   const finale = page.getByRole('dialog', { name: 'My Favorite Story Is Us' });
   await expect(finale).toContainText('Happy third anniversary.');
   await expect(finale.locator('.personal-signature strong')).toHaveText('R. & D.');
@@ -150,10 +150,14 @@ test('roses fall gently and follow the direction of scrolling', async ({ page })
   const restingSpeed = await measureSpeed(null);
   expect(restingSpeed).toBeGreaterThan(0);
   const downwardSpeed = await measureSpeed(180);
-  expect(downwardSpeed).toBeGreaterThan(restingSpeed * 2);
+  expect(downwardSpeed).toBeGreaterThan(restingSpeed * 1.05);
+  expect(downwardSpeed).toBeLessThan(restingSpeed * 1.9);
   const upwardSpeed = await measureSpeed(40);
   expect(upwardSpeed).toBeLessThan(0);
   expect(await measureSpeed(null)).toBeGreaterThan(0);
+  const fastScrollSpeed = await measureSpeed(1800);
+  expect(fastScrollSpeed).toBeGreaterThan(restingSpeed * 1.05);
+  expect(fastScrollSpeed).toBeLessThan(restingSpeed * 1.9);
 
   // The decoration must not intercept the controls underneath it.
   await page.getByRole('button', { name: 'Open navigation' }).click();
@@ -164,10 +168,13 @@ test('roses respect reduced motion and respond to preference changes', async ({ 
   await page.goto('/');
   const layer = page.locator('.falling-roses');
   await expect(layer).toBeHidden();
+  await expect(page.locator('.scroll-butterflies')).toBeHidden();
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(layer).toBeVisible();
+  await expect(page.locator('.scroll-butterflies')).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(layer).toBeHidden();
+  await expect(page.locator('.scroll-butterflies')).toBeHidden();
 });
 
 test('the anniversary counter uses the supplied date and updates at Manila midnight', async ({ page }) => {
@@ -184,6 +191,21 @@ test('the anniversary counter uses the supplied date and updates at Manila midni
 test('Polaroid notes work with touch, keyboard, and mouse', async ({ page }, testInfo) => {
   await page.goto('/');
   const toggle = page.getByRole('button', { name: 'A note from year 1' });
+  const layoutPositions = () => page.evaluate(() => {
+    // Measure document layout, independently of scrolling and decorative tilts.
+    return [...document.querySelectorAll('.overview-link, .chapter-open, .overview-quote, #chapter-one')].map(node => {
+      let top = 0;
+      for (let current = node; current; current = current.offsetParent) top += current.offsetTop;
+      return top;
+    });
+  });
+  await toggle.scrollIntoViewIfNeeded();
+  const initialLayout = await layoutPositions();
+  const expectStableLayout = async () => {
+    const positions = await layoutPositions();
+    // offsetTop may round differently when a transformed card becomes an offset parent.
+    positions.forEach((position, index) => expect(Math.abs(position - initialLayout[index])).toBeLessThanOrEqual(1));
+  };
   if (testInfo.project.name === 'mobile') {
     await toggle.tap();
   } else {
@@ -192,6 +214,7 @@ test('Polaroid notes work with touch, keyboard, and mouse', async ({ page }, tes
   }
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#polaroid-note-one')).toBeVisible();
+  await expectStableLayout();
   if (testInfo.project.name === 'mobile') {
     await toggle.tap();
   } else {
@@ -199,11 +222,18 @@ test('Polaroid notes work with touch, keyboard, and mouse', async ({ page }, tes
   }
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#polaroid-note-one')).toBeHidden();
+  await expectStableLayout();
   if (testInfo.project.name === 'desktop') {
-    await toggle.hover();
-    await expect(page.locator('#polaroid-note-one')).toBeVisible();
-    await page.mouse.move(0, 0);
-    await expect(page.locator('#polaroid-note-one')).toBeHidden();
+    for (const year of [1, 2, 3]) {
+      const yearToggle = page.getByRole('button', { name: `A note from year ${year}` });
+      await yearToggle.hover();
+      const note = page.locator(`#${await yearToggle.getAttribute('aria-controls')}`);
+      await expect(note).toBeVisible();
+      await expectStableLayout();
+      await page.mouse.move(0, 0);
+      await expect(note).toBeHidden();
+      await expectStableLayout();
+    }
   }
   await page.getByRole('link', { name: 'Turn to year 1' }).click();
   await expect(page).toHaveURL(/#chapter-one$/);
@@ -216,6 +246,7 @@ test('the envelope unfolds and the opened letter keeps keyboard focus', async ({
   await envelope.click();
   const dialog = page.getByRole('dialog', { name: 'When You Miss Me' });
   await expect(dialog.locator('.letter-modal')).toHaveCSS('opacity', '1');
+  await expect(dialog.locator('.letter-modal')).toHaveCSS('clip-path', 'inset(0%)');
   await expect(dialog.locator('.wax-seal')).toHaveCSS('opacity', '0');
   await expect.poll(() => dialog.locator('.opening-envelope-flap').evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).m22)).toBeLessThan(-0.98);
   const close = dialog.getByRole('button', { name: 'Close letter' });
@@ -237,7 +268,7 @@ test('the finale lights warm up as the final message appears', async ({ page }) 
   await expect(finale).toHaveClass(/has-arrived/);
   await expect(finale.locator('.finale-lights')).toHaveCSS('opacity', '1');
   await expect(finale.locator('.finale-promise')).toHaveText('I would still choose you.');
-  await page.getByRole('button', { name: "Here's to Forever" }).click();
+  await page.getByRole('button', { name: 'Open our final letter' }).click();
   await expect(finale).toHaveClass(/has-letter-open/);
   await page.getByRole('button', { name: 'Close letter' }).click();
   await expect(finale).not.toHaveClass(/has-letter-open/);
@@ -306,4 +337,111 @@ test('ribbon bookmarks follow the chapter and navigate between years', async ({ 
   await expect(bookmarks.getByRole('link', { name: 'Chapter 2: Becoming Us' })).toHaveAttribute('aria-current', 'location');
   await page.locator('#finale').scrollIntoViewIfNeeded();
   await expect(bookmarks).toBeHidden();
+});
+
+test.describe('dialog background stability', () => {
+  test('photo, letter, and cinema clicks preserve the background layout and reading position', async ({ page }) => {
+    await page.goto('/');
+    const background = () => page.evaluate(() => ({
+      width: document.querySelector('.site').getBoundingClientRect().width,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
+    }));
+    const cases = [
+      [page.locator('#chapter-one .memory-card .photo-open').first(), 'Our photo album', 'Close photo album'],
+      [page.getByRole('button', { name: /When You Miss Me/ }), 'When You Miss Me', 'Close letter'],
+      [page.getByRole('button', { name: /Our Little Movie/ }), 'Our Little Movie', 'Close video'],
+    ];
+    for (const [opener, title, closeName] of cases) {
+      await opener.scrollIntoViewIfNeeded();
+      await opener.focus();
+      const before = await background();
+      await opener.click();
+      const dialog = page.getByRole('dialog', { name: title, exact: true });
+      await expect(dialog).toBeVisible();
+      await expect.poll(background).toEqual(before);
+      await dialog.getByRole('button', { name: closeName }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(opener).toBeFocused();
+      await expect.poll(background).toEqual(before);
+    }
+  });
+
+  test('popup surfaces stay opaque above the page during opening animations', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.goto('/');
+    const cases = [
+      [page.locator('#chapter-one .memory-card .photo-open').first(), 'Our photo album', 'Close photo album', '.photo-album'],
+      [page.getByRole('button', { name: /When You Miss Me/ }), 'When You Miss Me', 'Close letter', '.letter-modal'],
+      [page.getByRole('button', { name: /Our Little Movie/ }), 'Our Little Movie', 'Close video', '.cinema-modal'],
+      [page.getByRole('button', { name: 'Open our final letter' }), 'My Favorite Story Is Us', 'Close letter', '.letter-modal'],
+    ];
+    for (const [opener, title, closeName, surfaceSelector] of cases) {
+      await opener.click();
+      const dialog = page.getByRole('dialog', { name: title, exact: true });
+      await expect(dialog).toBeVisible();
+      const samples = await dialog.evaluate(async (node, selector) => {
+        const surface = node.matches(selector) ? node : node.querySelector(selector);
+        const samples = [];
+        for (let frame = 0; frame < 10; frame++) {
+          await new Promise(resolve => requestAnimationFrame(resolve));
+          let opacity = 1;
+          for (let current = surface; current; current = current.parentElement) opacity *= Number(getComputedStyle(current).opacity);
+          samples.push(opacity);
+        }
+        return { samples, portaled: node.closest('.modal-shade').parentElement === document.body };
+      }, surfaceSelector);
+      expect(samples.portaled).toBe(true);
+      samples.samples.forEach(opacity => expect(opacity).toBe(1));
+      if (title === 'My Favorite Story Is Us') {
+        expect(await dialog.locator('.bouquet-art').evaluate(node => node.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
+      }
+      await dialog.getByRole('button', { name: closeName }).click();
+      await expect(dialog).toHaveCount(0);
+    }
+  });
+});
+
+test('scrolling launches butterflies that fly across without blocking controls', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  const layer = page.locator('.scroll-butterflies');
+  const butterfly = layer.locator('.scroll-butterfly').first();
+  await expect(layer).toHaveAttribute('aria-hidden', 'true');
+  await expect(layer).toHaveCSS('pointer-events', 'none');
+  await expect(butterfly).toHaveCSS('opacity', '0');
+  await page.evaluate(() => window.scrollTo({ top: 360, behavior: 'instant' }));
+  await expect.poll(() => butterfly.evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.08);
+  const distance = await butterfly.evaluate(async node => {
+    const position = () => new DOMMatrixReadOnly(getComputedStyle(node).transform).m41;
+    const start = position();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return position() - start;
+  });
+  expect(distance).toBeGreaterThan(5);
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await expect(page.getByRole('navigation', { name: 'Story navigation' })).toBeVisible();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(layer).toBeHidden();
+});
+
+test('the sealed final envelope reveals the letter and tulip/sunflower bouquet', async ({ page }) => {
+  await page.goto('/');
+  const envelope = page.getByRole('button', { name: 'Open our final letter' });
+  await envelope.scrollIntoViewIfNeeded();
+  await expect(envelope.locator('.final-envelope-stamp')).toHaveText('R. & D.');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await envelope.click();
+  const dialog = page.getByRole('dialog', { name: 'My Favorite Story Is Us' });
+  await expect(dialog).toContainText('Happy third anniversary.');
+  await expect(dialog.locator('.personal-signature strong')).toHaveText('R. & D.');
+  const bouquet = dialog.getByRole('img', { name: /pink tulips and golden sunflowers/ });
+  await bouquet.scrollIntoViewIfNeeded();
+  await expect(bouquet).toBeInViewport();
+  expect(await bouquet.evaluate(node => node.getAnimations({ subtree: true }).length)).toBe(0);
+  const close = dialog.getByRole('button', { name: 'Close letter' });
+  await expect(close).toBeInViewport();
+  await close.click();
+  await expect(dialog).toHaveCount(0);
+  await expect(envelope).toBeFocused();
 });

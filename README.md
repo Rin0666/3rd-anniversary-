@@ -88,6 +88,8 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Cinema videos and cover images | `films` |
 | The four envelopes and secret P.S. | `letters` |
 | Final love letter | `finale` |
+| Tulip/sunflower bouquet illustration | `src/FlowerBouquet.jsx` |
+| Scroll-triggered butterfly flights | `src/ScrollButterflies.jsx` |
 | Demo photographs and memory image fallback | `demo` in `src/App.jsx` |
 | Layout, colors, fonts, textures and motion | `src/styles.css` and the feature CSS files imported by `src/main.jsx` |
 
@@ -122,13 +124,16 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - Scroll-first single-column story on mobile; tasteful two-column memory grids on large screens
 - Cinematic hero and finale, warm torn-paper sections, Polaroid photographs, handwritten accents
 - Responsive tap targets, in-page navigation, smooth transitions, reduced-motion support
-- Gently falling roses that speed up with downward scrolling and rise with upward scrolling; hidden when reduced motion is preferred
+- Gently falling roses with a capped downward scroll boost (at most 1.6 times their resting speed) that fades smoothly after scrolling; upward scrolling still lifts the roses, and reduced motion hides the effect
+- Scrolling launches a few softly colored butterflies across the viewport; flights finish naturally, stop when the page is hidden, and are disabled for reduced motion
 - Confessions unfold from taped paper notes with handwritten headings, ruled pages, wax heart stamps, and cream/blush/sage variations; keyboard and touch interaction remain accessible
-- Accessible modal close buttons and Escape handling
-- Polaroids lift and reveal handwritten notes with hover, keyboard, or touch; a separate link opens each chapter
+- Accessible modal close buttons and Escape handling, with stable scrollbar space and reading-position restoration when overlays open and close; dialog surfaces remain opaque while a separate backdrop fades, and portals keep overlays above decorative page layers
+- Polaroids lift and reveal handwritten notes with hover, keyboard, or touch; note space stays reserved so surrounding content does not shift, and a separate link opens each chapter
 - Botanical rose corners and handwritten memory labels carry the scrapbook theme through the chapters
 - Letters open with an unfolding envelope, lifted wax seal, and sliding paper; reduced motion skips the sequence
 - The finale gradually warms its lighting as it enters view, with an extra glow around the last letter
+- A closed envelope sealed with R. & D. replaces the finale button; opening it reveals the final message and a bouquet of her favorite tulips and sunflowers, with small daisies and greenery
+- The bouquet sways and its blooms move subtly; reduced motion disables these animations. The gift is side by side on desktop and stacks on mobile, with a close button that stays available while scrolling
 - The soundtrack is presented as a cassette sleeve and handwritten tracklist; linked songs still open their original provider
 - Cinema cards use perforated ticket layouts, filmstrip previews, and keepsake numbers
 - Year two has a vertical photo-booth strip; year three has paired, tilted snapshots

@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
 :root{font-family:'DM Sans',sans-serif;color:#f6ebe4;background:#110e13;font-synthesis:none;scroll-behavior:smooth}
 *{box-sizing:border-box}
-html{scroll-padding-top:66px}
+html{scroll-padding-top:66px;scrollbar-gutter:stable}
 body{margin:0;min-width:320px}
 button,a{-webkit-tap-highlight-color:transparent}
 button{font:inherit;cursor:pointer}

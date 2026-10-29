@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Photo from './Photo';
 import useDialog from './useDialog';
+import DialogBackdrop from './DialogBackdrop';
 
 const AlbumContext = createContext(null);
 export const usePhotoAlbum = () => useContext(AlbumContext);
@@ -32,10 +33,9 @@ export default function PhotoAlbum({ photos, children }) {
   const photo = isOpen ? photos[activeIndex] : null;
   return <AlbumContext.Provider value={openPhoto}>
     {children}
-    <AnimatePresence>{photo && <motion.div className="modal-shade photo-album-shade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
+    <AnimatePresence>{photo && <DialogBackdrop className="photo-album-shade" onClose={close}>
       <motion.div className="photo-album" role="dialog" aria-modal="true" aria-label="Our photo album"
-        initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}>
+        initial={{ y: 18 }} animate={{ y: 0 }} exit={{ y: 12 }}>
         <button ref={closeRef} className="modal-close" onClick={close} aria-label="Close photo album"><X size={20} /></button>
         <span className="album-eyebrow">A LITTLE MOMENT, KEPT FOREVER</span>
         <figure>
@@ -52,6 +52,6 @@ export default function PhotoAlbum({ photos, children }) {
           <button onClick={() => move(1)} disabled={photos.length < 2} aria-label="Next photo"><span>next</span><ChevronRight size={18} /></button>
         </div>
       </motion.div>
-    </motion.div>}</AnimatePresence>
+    </DialogBackdrop>}</AnimatePresence>
   </AlbumContext.Provider>;
 }

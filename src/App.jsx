@@ -12,6 +12,9 @@ import Photo from "./Photo";
 import PhotoAlbum, { usePhotoAlbum } from "./PhotoAlbum";
 import ChapterBookmarks from "./ChapterBookmarks";
 import useDialog from "./useDialog";
+import DialogBackdrop from "./DialogBackdrop";
+import ScrollButterflies from "./ScrollButterflies";
+import FlowerBouquet from "./FlowerBouquet";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -134,7 +137,10 @@ function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note
   return <div className={"polaroid" + (expanded ? " is-open" : "")} style={{ "--rotation": rotation }}>
     <Photo src={image} alt={alt || "Illustrative couple photograph"} sample />
     <div className="polaroid-caption">{number && <b>{number}</b>}<div><strong>{title}</strong><em>{subtitle}</em></div></div>
-    <span className="polaroid-note" id={noteId} hidden={!expanded}>{note}</span>
+    <div className="polaroid-note-slot" data-expanded={expanded}>
+      <span className="polaroid-note" id={noteId} aria-hidden={!expanded}>{note}</span>
+      <span className="polaroid-note-hint" aria-hidden="true">a little note for you ♡</span>
+    </div>
   </div>;
 }
 
@@ -280,10 +286,12 @@ function LetterModal({ letter, onClose, isFinal = false }) {
   const [showPS, setShowPS] = useState(false);
   const reducedMotion = useReducedMotion();
   const closeRef = useDialog(true, onClose);
-  return <motion.div className="modal-shade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-    <motion.div className="letter-presentation" role="dialog" aria-modal="true" aria-label={letter.title}
-      initial="sealed" animate="opened" exit={{ opacity: 0, y: 15 }}>
+  return <DialogBackdrop onClose={onClose}>
+    <motion.div className={"letter-presentation" + (isFinal ? " final-letter-presentation" : "")} role="dialog" aria-modal="true" aria-label={letter.title}
+      initial="sealed" animate="opened" exit={{ y: 15 }}>
+      {isFinal && <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>}
+      <div className={isFinal ? "final-gift-layout" : "letter-gift-layout"}>
+      <div className="letter-panel">
       <motion.div className="opening-envelope" aria-hidden="true" variants={{ sealed: { y: -100 }, opened: { y: 0 } }}
         transition={{ duration: reducedMotion ? 0 : 0.6, delay: reducedMotion ? 0 : 0.25 }}>
         <div className="opening-envelope-back" />
@@ -293,9 +301,9 @@ function LetterModal({ letter, onClose, isFinal = false }) {
         <motion.span className="wax-seal" variants={{ sealed: { y: 0, opacity: 1, scale: 1 }, opened: { y: -28, opacity: 0, scale: 0.8 } }}
           transition={{ duration: reducedMotion ? 0 : 0.3 }}><SealMark /></motion.span>
       </motion.div>
-      <motion.div className="letter-modal" variants={{ sealed: { y: 65, opacity: 0, scale: 0.96 }, opened: { y: 0, opacity: 1, scale: 1 } }}
+      <motion.div className="letter-modal" variants={{ sealed: { y: 65, scale: 0.96, clipPath: 'inset(100% 0% 0% 0%)' }, opened: { y: 0, scale: 1, clipPath: 'inset(0% 0% 0% 0%)' } }}
         transition={{ duration: reducedMotion ? 0 : 0.55, delay: reducedMotion ? 0 : 0.4 }}>
-      <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>
+      {!isFinal && <button ref={closeRef} className="modal-close" onClick={onClose} aria-label="Close letter"><X size={20}/></button>}
       <span className="eyebrow">{isFinal ? "TO BE CONTINUED, FOREVER" : "SEALED WITH LOVE"}</span>
       <h2>{letter.title}</h2>
       {letter.body.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
@@ -303,8 +311,16 @@ function LetterModal({ letter, onClose, isFinal = false }) {
       {isFinal ? <div className="personal-signature"><span>{finale.signature}</span><strong>{settings.signature || settings.monogram}</strong><SealMark /></div>
         : <div className="letter-seal"><SealMark /></div>}
       </motion.div>
+      </div>
+      {isFinal && <motion.aside className="bouquet-keepsake" aria-label="Flowers for you"
+        variants={{ sealed: { y: 24, scale: .94 }, opened: { y: 0, scale: 1 } }}
+        transition={{ duration: reducedMotion ? 0 : .6, delay: reducedMotion ? 0 : .5 }}>
+        <span className="bouquet-eyebrow">A LITTLE GIFT, ALL MY LOVE</span>
+        <FlowerBouquet monogram={settings.monogram} />
+      </motion.aside>}
+      </div>
     </motion.div>
-  </motion.div>;
+  </DialogBackdrop>;
 }
 
 function LetterVault() {
@@ -338,13 +354,12 @@ function Cinema() {
         <span className="ticket-stub" aria-hidden="true"><span>KEEPSAKE</span><strong>00{i + 1}</strong><span className="ticket-barcode" /><span>♥</span></span>
       </span>
     </motion.button>)}</div>
-    <AnimatePresence>{active && <motion.div className="modal-shade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      onMouseDown={e => { if (e.target === e.currentTarget) setActive(null); }}>
+    <AnimatePresence>{active && <DialogBackdrop onClose={() => setActive(null)}>
       <div className="cinema-modal" role="dialog" aria-modal="true" aria-label={active.title}>
         <button ref={closeRef} className="modal-close" onClick={() => setActive(null)} aria-label="Close video"><X size={20}/></button>
         {active.src ? <video key={active.src} controls playsInline src={active.src} poster={active.poster || undefined} /> : <div className="empty-cinema"><Film size={40}/><h3>{active.title}</h3><p>This little film is still waiting for its first scene.</p></div>}
       </div>
-    </motion.div>}</AnimatePresence>
+    </DialogBackdrop>}</AnimatePresence>
   </section>;
 }
 
@@ -364,7 +379,15 @@ function Finale() {
       <h2>And Here We Are,<br/><em>Three Years Later ♡</em></h2>
       <p>Through every season, every challenge, and every beautiful moment, I'm still so glad it's you. Thank you for three amazing years. Here's to more adventures, more laughter, and a lifetime of us.</p>
       <span className="finale-promise">{finale.answer}</span>
-      <button className="primary-button" onClick={() => setShow(true)}>Here's to Forever <Heart size={16}/></button>
+      <button className="final-envelope-trigger" onClick={() => setShow(true)} aria-label="Open our final letter">
+        <span className="final-envelope" aria-hidden="true">
+          <span className="final-envelope-back" /><span className="final-envelope-flap" /><span className="final-envelope-front" />
+          <span className="final-envelope-stamp"><SealMark /></span>
+          <span className="final-envelope-address">to my favorite person</span>
+        </span>
+        <span className="final-envelope-label">a letter & a little bouquet</span>
+        <span className="final-envelope-hint">break the seal ♡</span>
+      </button>
     </motion.div>
     <div className="finale-bottom"><span>THE END OF CHAPTER THREE</span><h3>{settings.closing}</h3><p>{settings.subclosing}</p><a href="#home">Relive our story <RotateCcw size={15}/></a></div>
     <AnimatePresence>{show && <LetterModal letter={{title:"My Favorite Story Is Us",body:finale.letter}} isFinal onClose={() => setShow(false)}/>}</AnimatePresence>
@@ -372,7 +395,7 @@ function Finale() {
 }
 
 export default function App() {
-  return <MotionConfig reducedMotion="user"><PhotoAlbum photos={albumPhotos}><div className="site"><FallingRoses /><Header /><ChapterBookmarks /><main><Hero /><Overview />
+  return <MotionConfig reducedMotion="user"><PhotoAlbum photos={albumPhotos}><div className="site"><FallingRoses /><ScrollButterflies /><Header /><ChapterBookmarks /><main><Hero /><Overview />
     {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
     <Soundtrack /><LetterVault /><Cinema /><Finale /></main>
     <footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">BACK TO THE BEGINNING ↑</a></footer>

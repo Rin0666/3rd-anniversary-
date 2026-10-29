@@ -5,4 +5,5 @@ import './styles.css';
 import './story-enhancements.css';
 import './scrapbook-notes.css';
 import './album-keepsakes.css';
+import './floral-gifts.css';
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);

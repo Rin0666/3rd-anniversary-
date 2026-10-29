@@ -9,8 +9,9 @@ export default function useDialog(isOpen, onClose) {
     if (!isOpen) return;
     priorFocus.current = document.activeElement;
     const oldOverflow = document.body.style.overflow;
+    const scrollPosition = { left: window.scrollX, top: window.scrollY };
     document.body.style.overflow = 'hidden';
-    closeRef.current?.focus();
+    closeRef.current?.focus({ preventScroll: true });
     const keyDown = event => {
       if (event.key === 'Escape') onCloseRef.current();
       if (event.key === 'Tab') {
@@ -27,7 +28,8 @@ export default function useDialog(isOpen, onClose) {
     return () => {
       document.body.style.overflow = oldOverflow;
       window.removeEventListener('keydown', keyDown);
-      priorFocus.current?.focus?.();
+      priorFocus.current?.focus?.({ preventScroll: true });
+      window.scrollTo({ ...scrollPosition, behavior: 'instant' });
     };
   }, [isOpen]);
   return closeRef;

@@ -24,7 +24,11 @@
 .polaroid-toggle:hover .polaroid,
 .polaroid-toggle:focus-visible .polaroid,
 .polaroid.is-open { transform: translateY(-9px) rotate(0); box-shadow: 0 20px 38px #49312544; }
-.polaroid-note:not([hidden]) { display: block; margin: 14px 5px 0; padding-top: 12px; border-top: 1px dashed #caac98; color: #8f5360; font-family: 'Caveat', cursive; font-size: 23px; line-height: 1.2; animation: note-reveal .3s ease both; }
+.polaroid-note-slot { position: relative; margin: 14px 5px 0; padding-top: 12px; border-top: 1px dashed #caac98; }
+.polaroid-note { display: block; visibility: hidden; color: #8f5360; font-family: 'Caveat', cursive; font-size: 23px; line-height: 1.2; }
+.polaroid-note[aria-hidden="false"] { visibility: visible; animation: note-reveal .3s ease both; }
+.polaroid-note-hint { position: absolute; inset: 12px 0 0; display: grid; place-items: center; color: #b28d89; font-family: 'Caveat', cursive; font-size: 21px; line-height: 1.2; }
+.polaroid-note-slot[data-expanded="true"] .polaroid-note-hint { visibility: hidden; }
 .chapter-open { display: inline-flex; justify-content: center; align-items: center; gap: 9px; margin-top: 20px; padding: 8px 0; color: #8d4d5c; font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
 .memory-date { display: block; padding: 10px 5px 12px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.2; color: #a2676e; text-align: right; transform: rotate(-2deg); }
 @keyframes note-reveal { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -76,6 +80,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .polaroid, .envelope-illustration, .finale-warmth, .finale-lights { transition: none; }
-  .polaroid-note:not([hidden]), .finale-lights i { animation: none; }
+  .polaroid-note[aria-hidden="false"], .finale-lights i { animation: none; }
   .finale-lights i { opacity: .8; }
 }

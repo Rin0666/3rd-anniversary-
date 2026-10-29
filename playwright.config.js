@@ -12,9 +12,10 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:8788',
     reducedMotion: 'reduce',
     trace: 'retain-on-failure',
-    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
-      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
-      : {},
+    launchOptions: {
+      ignoreDefaultArgs: ['--hide-scrollbars'],
+      ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}),
+    },
   },
   projects: [
     { name: 'mobile', use: { browserName: 'chromium', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
