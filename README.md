@@ -86,6 +86,7 @@ All personal stories, chapter text, letters, track links and videos are in **`sr
 | Days together and calendar timezone | `settings.relationshipStartDate`, `settings.timeZone` |
 | Seal initials and final signature | `settings.monogram`, `settings.signature` |
 | Three years and their memories | `chapters[].memories` |
+| Favorite tree photo, crop, caption, and note | `favoriteTree` |
 | Song names, artist, listen URL | `songs` |
 | Cinema videos and cover images | `films` |
 | The four envelopes and secret P.S. | `letters` |
@@ -104,6 +105,8 @@ The opening and finale share `settings.heroImage`; leave it empty to keep the la
 In `src/content.js`, set each memory's `image` to a valid, accessible URL, e.g. `image: "/media/my-memory.webp"` **only when the site is secured and the photo is not private**. For personal media, prefer an authenticated asset endpoint backed by private Cloudflare R2, then reference those protected URLs. For now, blank `image` values use illustrative photos, with a **SAMPLE PHOTO** label.
 
 Memory photographs, chapter photos, the year-two photo-booth strip, and year-three paired snapshots open the shared album viewer. It uses the memory title, date label, description, and optional `memory.alt` text. The viewer supports previous/next buttons, left/right arrow keys, Escape, focus trapping, and focus restoration. Overview Polaroids keep their separate note-reveal interaction.
+
+The **Our Favorite Tree** interlude follows year three, with a taped photograph and a ruled-paper note. Set `favoriteTree.image` to the tree photo's URL and adjust `favoriteTree.imagePosition` for its crop. Once configured, the photo opens in the shared album. Until the real photo is supplied, the section shows a labeled botanical illustration. Its caption and note are editable in `src/content.js`.
 
 ### Adding music
 

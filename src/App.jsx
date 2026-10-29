@@ -4,7 +4,7 @@ import {
   ArrowDown, ArrowRight, ChevronLeft, ChevronRight, ExternalLink,
   Film, Heart, Mail, Menu, Music2, Play, RotateCcw, X
 } from "lucide-react";
-import { settings, chapters, songs, films, letters, finale } from "./content";
+import { settings, chapters, songs, films, letters, finale, favoriteTree } from "./content";
 import FallingRoses from "./FallingRoses";
 import AnniversaryCounter from "./AnniversaryCounter";
 import FloralSprig from "./FloralSprig";
@@ -18,6 +18,7 @@ import FlowerBouquet from "./FlowerBouquet";
 import useCanonMusic from "./useCanonMusic";
 import { BackgroundMusic, StoryBurst } from "./StoryOpening";
 import FittedLetter from "./FittedLetter";
+import FavoriteTree from "./FavoriteTree";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -46,7 +47,10 @@ const albumPhotos = chapters.flatMap(chapter => chapter.memories.map(memory => (
   id: memory.id, src: memoryImage(memory), title: memory.title, date: memory.date,
   caption: memory.description, sample: !memory.image,
   alt: memory.image ? (memory.alt || memory.title) : `Illustrative photo for ${memory.title}`
-})));
+}))).concat(favoriteTree.image ? [{
+  id: 'favorite-tree', src: favoriteTree.image, alt: favoriteTree.alt,
+  title: favoriteTree.title, date: favoriteTree.eyebrow, caption: favoriteTree.note, sample: false
+}] : []);
 const reveal = {
   initial: { opacity: 0, y: 22 },
   whileInView: { opacity: 1, y: 0 },
@@ -95,7 +99,7 @@ function Header() {
   }, [open]);
   const links = [
     ["#overview", "Our story"], ["#chapter-one", "Year one"], ["#chapter-two", "Year two"],
-    ["#chapter-three", "Year three"], ["#soundtrack", "Soundtrack"],
+    ["#chapter-three", "Year three"], ["#favorite-tree", "Our favorite tree"], ["#soundtrack", "Soundtrack"],
     ["#letters", "Love letters"], ["#cinema", "Little cinema"], ["#finale", "Grand finale"]
   ];
   return <>
@@ -260,7 +264,7 @@ function Chapter({ chapter, index }) {
     {index === 2 && <div className="paper-note"><span>THE LITTLE THINGS</span><p>Our morning texts<br/>Our late night talks<br/>Finding comfort in silence<br/>Still choosing each other</p><i>♡</i></div>}
     <div className="memory-stream">{chapter.memories.map((m, i) => <MemoryCard key={m.id} memory={m} index={i} chapterIndex={index} />)}</div>
     <motion.blockquote {...reveal} className="chapter-ending">“{chapter.quote}”<span>♡</span></motion.blockquote>
-    <a className="chapter-next" href={index === 2 ? "#soundtrack" : "#chapter-" + chapters[index + 1].id}>Keep scrolling through our story <ArrowDown size={16}/></a>
+    <a className="chapter-next" href={index === 2 ? "#favorite-tree" : "#chapter-" + chapters[index + 1].id}>Keep scrolling through our story <ArrowDown size={16}/></a>
     {index !== 1 && <div className={"torn-edge " + (index === 0 ? "torn-dark" : "torn-dark")} />}
   </section>;
 }
@@ -449,7 +453,7 @@ export default function App() {
     <main><Hero phase={phase} onBegin={begin} />
     {opened && <div id="our-story" className="story-content"><Overview />
     {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
-    <Soundtrack music={music} /><LetterVault /><Cinema music={music} /><Finale /></div>}</main>
+    <FavoriteTree /><Soundtrack music={music} /><LetterVault /><Cinema music={music} /><Finale /></div>}</main>
     {opened && <><footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">Relive our story <RotateCcw size={15}/></a></footer><BackgroundMusic music={music} /></>}
     {phase === 'bursting' && <StoryBurst photos={albumPhotos} onComplete={finishOpening} />}
     <span className="screen-reader-only" role="status">{phase === 'bursting' ? 'Opening our story…' : ''}</span>

@@ -64,11 +64,19 @@ test('chapter navigation survives a reload', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Three Years, Still You.' })).toBeVisible();
   await page.getByRole('button', { name: 'Open navigation' }).click();
   const navigation = page.getByRole('navigation', { name: 'Story navigation' });
-  await expect(navigation.getByRole('link')).toHaveCount(8);
+  await expect(navigation.getByRole('link')).toHaveCount(9);
   for (const link of await navigation.getByRole('link').all()) {
     const target = await link.getAttribute('href');
     await expect(page.locator(target)).toHaveCount(1);
   }
+  await navigation.getByRole('link', { name: 'Our favorite tree' }).click();
+  await expect(page).toHaveURL(/#favorite-tree$/);
+  await expect(page.getByRole('region', { name: 'Our Favorite Tree' }).getByRole('heading')).toBeInViewport();
+  await expect(page.getByRole('img', { name: 'An illustrated leafy tree keepsake' })).toBeVisible();
+  await page.getByRole('link', { name: 'A song for the way this feels' }).click();
+  await expect(page).toHaveURL(/#soundtrack$/);
+  await expect(page.locator('#soundtrack h2')).toBeInViewport();
+  await page.getByRole('button', { name: 'Open navigation' }).click();
   await navigation.getByRole('link', { name: 'Year three' }).click();
   await expect(page).toHaveURL(/#chapter-three$/);
   await expect(page.getByRole('button', { name: 'Open navigation' })).toHaveAttribute('aria-expanded', 'false');
@@ -142,7 +150,7 @@ test('both cinema placeholders open and close', async ({ page }) => {
 test('the story works without remote media and fits the viewport', async ({ page }) => {
   await enterStory(page);
   await expect(page.locator('.hero-photo .photo-fallback')).toBeVisible();
-  for (const id of ['overview', 'chapter-one', 'chapter-two', 'chapter-three', 'soundtrack', 'letters', 'cinema', 'finale']) {
+  for (const id of ['overview', 'chapter-one', 'chapter-two', 'chapter-three', 'favorite-tree', 'soundtrack', 'letters', 'cinema', 'finale']) {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await expect(page.locator(`#${id} h2`).first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
