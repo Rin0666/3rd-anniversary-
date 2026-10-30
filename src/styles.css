@@ -36,7 +36,7 @@ h1,h2,h3,.polaroid strong,.overview-quote,.chapter-ending,.memory-copy h3{font-f
 .hero-photo,.hero-shade{position:absolute;inset:0;width:100%;height:100%}
 .hero-photo{z-index:-3;background:#25151e}
 .hero-photo img{object-position:center 42%;filter:saturate(.75) sepia(.15);opacity:0}
-.hero-photo[data-image-ready="true"] img{animation:hero-photo-fade-in 1.4s cubic-bezier(.22,1,.36,1) both}
+.site:not([data-story-state="cover"]) .hero-photo[data-image-ready="true"] img{animation:hero-photo-fade-in 1.8s cubic-bezier(.22,1,.36,1) both}
 @keyframes hero-photo-fade-in{from{opacity:0}to{opacity:1}}
 .hero-shade{z-index:-2;background:linear-gradient(180deg,#150e15bd 0%,#180e1496 24%,#170d16a8 58%,#170d16ec 100%)}
 .hero-copy{max-width:600px;position:relative;z-index:2}

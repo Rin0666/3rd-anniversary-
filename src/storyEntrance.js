@@ -47,7 +47,7 @@ export default function startStoryEntrance(onReady) {
     const from = window.scrollY;
     const start = performance.now() + 150;
     const animate = now => {
-      const progress = Math.max(0, Math.min(1, (now - start) / 2000));
+      const progress = Math.max(0, Math.min(1, (now - start) / 4500));
       const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
       window.scrollTo({ top: from + (targetTop() - from) * eased, behavior: 'instant' });
       if (progress < 1) frame = requestAnimationFrame(animate);
