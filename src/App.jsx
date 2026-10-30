@@ -138,7 +138,7 @@ function Hero({ phase, onBegin }) {
   const reducedMotion = useReducedMotion();
   const opened = phase === 'open';
   return <section id="home" className="hero" style={{ "--hero-focus": settings.heroImagePosition }}>
-    <Photo drift className="hero-photo" src={settings.heroImage || demo.hero} eager alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
+    <Photo drift className="hero-photo" src={settings.heroImage || demo.hero} eager fadeIn alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
     <div className="hero-shade" />
     <div className="film-grain" aria-hidden="true" />
     <motion.div className="hero-copy" initial={reducedMotion ? false : { opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 1.05 }}>

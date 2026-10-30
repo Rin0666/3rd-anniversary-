@@ -36,6 +36,31 @@ const test = base.extend({
   },
 });
 
+test('hero image waits until decoded, then fades in instead of popping in', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  let releaseImage;
+  const imageHeld = new Promise(resolve => { releaseImage = resolve; });
+  await page.route('**/media/photos/cover-lakeside.webp', async route => {
+    await imageHeld;
+    await route.continue();
+  });
+
+  try {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const photo = page.locator('.hero-photo');
+    const image = photo.locator('img');
+    await expect(photo).toHaveAttribute('data-image-ready', 'false');
+    expect(await image.evaluate(node => getComputedStyle(node).opacity)).toBe('0');
+
+    releaseImage();
+    await expect(photo).toHaveAttribute('data-image-ready', 'true');
+    await expect.poll(() => image.evaluate(node => getComputedStyle(node).opacity), { timeout: 4000 }).toBe('1');
+    await expect(page.getByRole('button', { name: 'Begin Our Story' })).toBeVisible();
+  } finally {
+    releaseImage();
+  }
+});
+
 test('Cloudflare serves the built page, bundles, cache headers, and SPA fallback', async ({ request }) => {
   const response = await request.get('/');
   expect(response.status()).toBe(200);
