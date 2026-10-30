@@ -25,7 +25,8 @@ export default function FallingRoses() {
       let height = window.innerHeight;
       let previousScroll = window.scrollY;
       let previousTime = performance.now();
-      let riseImpulse = 0;
+      let riseStrength = 0;
+      let verticalFactor = 1;
       let fallBoost = 0;
       let direction = 1;
       let lastScrollTime = -Infinity;
@@ -44,14 +45,15 @@ export default function FallingRoses() {
         previousScroll = nextScroll;
         if (!delta) return;
         // Replace leftover momentum when the visitor changes direction.
-        if (Math.sign(delta) !== direction) riseImpulse = 0;
+        if (Math.sign(delta) !== direction) riseStrength = 0;
         direction = Math.sign(delta);
         if (delta > 0) {
           // Scrolling adds a small speed boost, never a jump by the page distance.
           fallBoost = Math.min(1, fallBoost + delta / 120);
         } else {
           fallBoost = 0;
-          riseImpulse += delta * 0.65;
+          // Large upward swipes get the same gentle cap as small ones.
+          riseStrength = Math.min(1, riseStrength + Math.abs(delta) / 160);
         }
         lastScrollTime = performance.now();
       };
@@ -63,15 +65,15 @@ export default function FallingRoses() {
         const seconds = previousTime === null ? 0 : Math.min((now - previousTime) / 1000, 0.25);
         previousTime = now;
         elapsed += seconds;
-        const riseStep = riseImpulse * (1 - Math.exp(-18 * seconds));
-        riseImpulse -= riseStep;
-        const driftDirection = now - lastScrollTime < 220 ? direction : 1;
         const fallMultiplier = 1 + fallBoost * 0.6;
+        const rising = direction < 0 && now - lastScrollTime < 300;
+        const targetFactor = rising ? -(.35 + riseStrength * .3) : fallMultiplier;
+        verticalFactor += (targetFactor - verticalFactor) * (1 - Math.exp(-12 * seconds));
         fallBoost *= Math.exp(-3 * seconds);
 
         particles.forEach((rose, index) => {
           if (width <= 700 && index >= 8) return;
-          rose.y += rose.speed * seconds * driftDirection * fallMultiplier + riseStep;
+          rose.y += rose.speed * seconds * verticalFactor;
           // Wrap outside the viewport, including large scrollbar/anchor jumps.
           const span = height + margin * 2;
           rose.y = ((rose.y + margin) % span + span) % span - margin;
@@ -94,7 +96,8 @@ export default function FallingRoses() {
         cancelAnimationFrame(frameId);
         previousTime = null;
         previousScroll = window.scrollY;
-        riseImpulse = 0;
+        riseStrength = 0;
+        verticalFactor = 1;
         fallBoost = 0;
         lastScrollTime = -Infinity;
         if (!document.hidden) frameId = requestAnimationFrame(animate);

@@ -20,6 +20,7 @@ import { BackgroundMusic, StoryBurst } from "./StoryOpening";
 import FittedLetter from "./FittedLetter";
 import FavoriteTree from "./FavoriteTree";
 import LooseSnapshot from "./LooseSnapshot";
+import startStoryEntrance from "./storyEntrance";
 import { ChapterScenery, MemoryInterlude, ScrapbookReveal, useCinematicScroll } from "./CinematicScroll";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
@@ -470,16 +471,7 @@ export default function App() {
   }, [opened]);
   useEffect(() => {
     if (!opened) return;
-    const frame = requestAnimationFrame(() => {
-      const requested = window.location.hash.slice(1);
-      const target = requested && requested !== 'home' ? document.getElementById(requested) : document.getElementById('overview');
-      const destination = target || document.getElementById('overview');
-      destination?.setAttribute('tabindex', '-1');
-      destination?.focus({ preventScroll: true });
-      destination?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
-      setStoryReady(true);
-    });
-    return () => cancelAnimationFrame(frame);
+    return startStoryEntrance(() => setStoryReady(true));
   }, [opened]);
   useEffect(() => {
     // Warm the three chapter images without adding visible content to the cover.

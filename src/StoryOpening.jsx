@@ -8,7 +8,7 @@ export function StoryBurst({ photos, onComplete }) {
   const [viewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
   const burstPhotos = Array.from({ length: photos.length ? 45 : 0 }, (_, index) => photos[index % photos.length]);
   useEffect(() => {
-    const timer = window.setTimeout(onComplete, reducedMotion ? 100 : 1350);
+    const timer = window.setTimeout(onComplete, reducedMotion ? 100 : 2150);
     return () => window.clearTimeout(timer);
   }, [onComplete, reducedMotion]);
   return <div className="story-burst" aria-hidden="true">
@@ -22,7 +22,7 @@ export function StoryBurst({ photos, onComplete }) {
         initial={{ x: 0, y: 0, rotate: (slot - 4) * 5, scale: .2, opacity: 1 }}
         animate={{ x: Math.cos(angle) * (viewport.width * .75 + 130), y: Math.sin(angle) * (viewport.height * .75 + 150),
           rotate: (index % 2 ? 1 : -1) * (35 + slot * 8 + wave * 6), scale: [ .2, 1, .85 ], opacity: [1, 1, 0] }}
-        transition={{ duration: 1.05, delay: wave * .045 + slot * .012, ease: [.2, .65, .3, 1], times: [0, .65, 1] }}>
+        transition={{ duration: 1.6, delay: wave * .06 + slot * .018, ease: [.2, .65, .3, 1], times: [0, .6, 1] }}>
         <Photo src={photo.src} alt="" eager sample={photo.sample} />
         <figcaption>{photo.title}</figcaption>
       </motion.figure>;
@@ -36,7 +36,7 @@ export function StoryBurst({ photos, onComplete }) {
         initial={{ x: 0, y: 0, scale: .2, opacity: 0 }}
         animate={{ x: Math.cos(angle) * (viewport.width * .6 + 60), y: Math.sin(angle) * (viewport.height * .6 + 60),
           rotate: index % 2 ? 45 : -65, scale: [.2, 1.15, .7], opacity: [0, 1, 0] }}
-        transition={{ duration: 1, delay: .04 + index * .012, ease: [.2, .65, .3, 1], times: [0, .4, 1] }}>
+        transition={{ duration: 1.5, delay: .06 + index * .018, ease: [.2, .65, .3, 1], times: [0, .4, 1] }}>
         <Icon size={flower ? 34 : 25} strokeWidth={1.4} />
       </motion.span>;
     })}

@@ -293,10 +293,14 @@ test('roses fall gently and follow the direction of scrolling', async ({ page })
   expect(downwardSpeed).toBeLessThan(restingSpeed * 1.9);
   const upwardSpeed = await measureSpeed(40);
   expect(upwardSpeed).toBeLessThan(0);
+  expect(Math.abs(upwardSpeed)).toBeLessThan(restingSpeed);
   expect(await measureSpeed(null)).toBeGreaterThan(0);
   const fastScrollSpeed = await measureSpeed(1800);
   expect(fastScrollSpeed).toBeGreaterThan(restingSpeed * 1.05);
   expect(fastScrollSpeed).toBeLessThan(restingSpeed * 1.9);
+  const fastUpwardSpeed = await measureSpeed(40);
+  expect(fastUpwardSpeed).toBeLessThan(0);
+  expect(Math.abs(fastUpwardSpeed)).toBeLessThan(restingSpeed);
 
   // The decoration must not intercept the controls underneath it.
   await page.getByRole('button', { name: 'Open navigation' }).click();
@@ -687,9 +691,13 @@ test('Begin bursts the photos outward and starts real Canon in D audio from that
           hearts: count('.burst-heart'), fireworks: count('.story-burst-firework'), story: count('#our-story') };
         const sources = [...document.querySelectorAll('.story-burst-photo img')].map(image => image.getAttribute('src'));
         const start = new DOMMatrixReadOnly(getComputedStyle(node).transform);
-        const result = { counts, sources, distance: 0 };
+        const started = performance.now();
+        const result = { counts, sources, distance: 0, duration: 0 };
         const sample = () => {
-          if (!node.isConnected) return resolve(result);
+          if (!node.isConnected) {
+            result.duration = performance.now() - started;
+            return resolve(result);
+          }
           const end = new DOMMatrixReadOnly(getComputedStyle(node).transform);
           result.distance = Math.max(result.distance, Math.hypot(end.m41 - start.m41, end.m42 - start.m42));
           requestAnimationFrame(sample);
@@ -704,6 +712,9 @@ test('Begin bursts the photos outward and starts real Canon in D audio from that
   expect(burst.counts).toEqual({ photos: 45, flowers: 10, hearts: 10, fireworks: 3, story: 0 });
   expect(new Set(burst.sources).size, 'The burst uses photographs throughout the album').toBeGreaterThan(9);
   expect(burst.distance).toBeGreaterThan(20);
+  expect(burst.duration).toBeGreaterThan(1900);
+  // The burst fades before the slower journey into the story completes.
+  await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'false');
   await expect.poll(() => page.evaluate(() => {
     if (!window.__musicAnalyser) return 0;
     const samples = new Float32Array(window.__musicAnalyser.fftSize);
@@ -723,6 +734,21 @@ test('Begin bursts the photos outward and starts real Canon in D audio from that
   await expect.poll(() => page.evaluate(() => window.__musicContexts[0].state)).toBe('running');
   expect(await page.evaluate(() => window.__musicContexts.length)).toBe(1);
   await player.click();
+});
+
+test('the slower opening scroll yields immediately to the reader', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Begin Our Story' }).click();
+  await expect(page.locator('#our-story')).toBeAttached();
+  await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'false');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'true');
+  // Let the keyboard's own scroll settle and wait beyond the automatic glide.
+  // The opening must not resume and carry the reader down to the overview.
+  await page.waitForTimeout(2200);
+  const stopped = await page.evaluate(() => scrollY);
+  expect(stopped).toBeLessThan(await page.locator('#overview').evaluate(node => node.offsetTop / 2));
 });
 
 test('cinematic photos move gently inside their frames and stop for reduced motion', async ({ page }) => {
