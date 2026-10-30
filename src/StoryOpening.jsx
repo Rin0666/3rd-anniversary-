@@ -6,7 +6,10 @@ import Photo from './Photo';
 export function StoryBurst({ photos, onComplete }) {
   const reducedMotion = useReducedMotion();
   const [viewport] = useState(() => ({ width: window.innerWidth, height: window.innerHeight }));
-  const burstPhotos = Array.from({ length: photos.length ? 45 : 0 }, (_, index) => photos[index % photos.length]);
+  // Too many simultaneously transformed images overload the Safari compositor.
+  // Preserve the photo-burst effect with fewer cards on smaller screens.
+  const photoCount = viewport.width <= 700 ? 18 : 28;
+  const burstPhotos = Array.from({ length: photos.length ? photoCount : 0 }, (_, index) => photos[index % photos.length]);
   useEffect(() => {
     const timer = window.setTimeout(onComplete, reducedMotion ? 100 : 2150);
     return () => window.clearTimeout(timer);
@@ -23,7 +26,7 @@ export function StoryBurst({ photos, onComplete }) {
         animate={{ x: Math.cos(angle) * (viewport.width * .75 + 130), y: Math.sin(angle) * (viewport.height * .75 + 150),
           rotate: (index % 2 ? 1 : -1) * (35 + slot * 8 + wave * 6), scale: [ .2, 1, .85 ], opacity: [1, 1, 0] }}
         transition={{ duration: 1.6, delay: wave * .06 + slot * .018, ease: [.2, .65, .3, 1], times: [0, .6, 1] }}>
-        <Photo src={photo.src} alt="" eager sample={photo.sample} />
+        <Photo src={photo.src} alt="" eager fadeIn sample={photo.sample} />
         <figcaption>{photo.title}</figcaption>
       </motion.figure>;
     })}

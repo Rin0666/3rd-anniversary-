@@ -138,13 +138,15 @@ function Hero({ phase, onBegin }) {
   const reducedMotion = useReducedMotion();
   const opened = phase === 'open';
   return <section id="home" className="hero" style={{ "--hero-focus": settings.heroImagePosition }}>
-    <Photo drift className="hero-photo" src={settings.heroImage || demo.hero} eager fadeIn alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
+    <Photo className="hero-photo" src={settings.heroImage || demo.hero} eager fadeIn alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
     <div className="hero-shade" />
     <div className="film-grain" aria-hidden="true" />
     <motion.div className="hero-copy" initial={reducedMotion ? false : { opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 1.05 }}>
       <span className="eyebrow">A LOVE STORY IN THREE CHAPTERS</span>
       <h1>Three Years,<br/><em>Still You.</em></h1>
-      {opened && <AnniversaryCounter startDate={settings.relationshipStartDate} timeZone={settings.timeZone} />}
+      <div className={"hero-counter-slot" + (opened ? " is-visible" : "")} aria-hidden={!opened}>
+        <AnniversaryCounter startDate={settings.relationshipStartDate} timeZone={settings.timeZone} />
+      </div>
       <p>Three years of laughter, late nights, adventures, and a love that keeps feeling new.</p>
       {opened ? <a className="primary-button" href="#overview">Continue Our Story <ArrowRight size={17}/></a>
         : <button className="primary-button begin-story" onClick={onBegin} disabled={phase === 'bursting'} aria-controls="our-story" aria-busy={phase === 'bursting'}>
@@ -474,9 +476,12 @@ export default function App() {
     return startStoryEntrance(() => setStoryReady(true));
   }, [opened]);
   useEffect(() => {
-    // Warm the three chapter images without adding visible content to the cover.
-    const timer = window.setTimeout(() => [0, 3, 6].forEach(index => {
-      if (albumPhotos[index]) { const image = new Image(); image.src = albumPhotos[index].src; }
+    // Decode the first burst cards in advance, so they don't appear empty mid-flight.
+    // The browser can pause these low-priority preloads on a slow connection.
+    const timer = window.setTimeout(() => albumPhotos.slice(0, 9).forEach(photo => {
+      const image = new Image();
+      image.src = photo.src;
+      if (image.decode) void image.decode().catch(() => {});
     }), 250);
     return () => window.clearTimeout(timer);
   }, []);

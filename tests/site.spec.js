@@ -73,6 +73,33 @@ test('hero still appears when the image finishes loading after the button is cli
   }
 });
 
+test('hero geometry stays stable when the opening finishes', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  const geometry = () => page.evaluate(() => {
+    const hero = document.querySelector('.hero').getBoundingClientRect();
+    return ['.hero h1', '.hero-copy > p', '.hero .primary-button'].map(selector => {
+      const box = document.querySelector(selector).getBoundingClientRect();
+      return [box.top - hero.top, box.left - hero.left, box.width, box.height];
+    });
+  });
+  const before = await geometry();
+  await page.getByRole('button', { name: 'Begin Our Story' }).click();
+  await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'true');
+  const after = await geometry();
+  before.forEach((measurements, index) => measurements.forEach((value, part) =>
+    expect(Math.abs(after[index][part] - value), 'The opening should not shift the hero content').toBeLessThan(2)));
+  await expect(page.locator('.hero-photo')).not.toHaveAttribute('data-scroll-depth', 'photo');
+});
+
+test('the mobile photo burst limits simultaneous animated images', async ({ page }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Begin Our Story' }).click();
+  const expected = testInfo.project.name === 'mobile' ? 18 : 28;
+  await expect(page.locator('.story-burst-photo')).toHaveCount(expected);
+});
+
 test('Cloudflare serves the built page, bundles, cache headers, and SPA fallback', async ({ request }) => {
   const response = await request.get('/');
   expect(response.status()).toBe(200);

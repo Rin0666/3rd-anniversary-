@@ -1,6 +1,6 @@
 .story-locked { height: 100svh; overflow: clip; }
-.story-locked .hero { height: 100svh; min-height: 0; padding: 35px 20px; }
-.story-locked .hero h1 { font-size: clamp(60px, min(16vw, 16svh), 140px); }
+.story-locked .hero { height: 100svh; min-height: 100svh; }
+/* Keep the same heading size and padding on both sides of the opening. */
 .begin-story { min-width: 225px; }
 .begin-story:disabled { cursor: wait; }
 .story-content:focus, .story-content section:focus { outline: none; }
@@ -8,6 +8,17 @@
 .story-burst { position: fixed; z-index: 35; inset: 0; overflow: hidden; pointer-events: none; contain: strict; }
 .story-burst-photo { position: absolute; left: 50%; top: 50%; width: 170px; margin: -110px 0 0 -85px; padding: 8px 8px 12px; background: #fff3df; box-shadow: 0 10px 30px #2811214d; will-change: transform; }
 .story-burst-photo .photo { height: 155px; }
+.story-burst-photo .photo > img { opacity: 0; }
+.story-burst-photo .photo[data-image-ready="true"] > img { animation: burst-photo-reveal .35s ease-out both; }
+@keyframes burst-photo-reveal { to { opacity: 1; } }
+/* Decorations mount at the end of the burst; reveal them gently. */
+.site[data-story-state="open"] .site-header,
+.site[data-story-state="open"] .falling-roses,
+.site[data-story-state="open"] .scroll-butterflies,
+.site[data-story-state="open"] .background-music,
+.site[data-story-state="open"] .scroll-cue,
+.site[data-story-state="open"] .hero .torn-edge { animation: story-decor-reveal .9s ease-in-out both; }
+@keyframes story-decor-reveal { from { opacity: 0; } to { opacity: 1; } }
 .story-burst-photo figcaption { margin-top: 9px; font-family: 'Caveat',cursive; font-size: 20px; line-height: 1.1; color: #9b626d; text-align: center; }
 .story-burst-photo .sample-tag { font-size: 5px; padding: 3px 4px; }
 .story-burst-keepsake { position: absolute; z-index: 1; top: 50%; left: 50%; margin: -17px; width: 34px; height: 34px; display: grid; place-items: center; }
