@@ -44,12 +44,15 @@ const demoMemoryImages = {
   today: demo.three
 };
 const memoryImage = memory => memory.image || demoMemoryImages[memory.id] || demo.one;
-const chapterCover = chapter => chapter.coverPhoto || chapter.memories[0];
+const chapterCover = chapter => {
+  const cover = chapter.coverPhoto || chapter.memories[0];
+  return chapter.memories.find(memory => memory.image && memory.image === cover.image) || cover;
+};
 const albumPhotos = [
   ...chapters.flatMap(chapter => chapter.memories),
   ...chapters.flatMap(chapter => chapter.extraPhotos || []),
   ...looseSnapshots,
-  ...chapters.flatMap(chapter => chapter.coverPhoto ? [chapter.coverPhoto] : [])
+  ...chapters.flatMap(chapter => chapter.coverPhoto && !chapter.memories.some(memory => memory.image === chapter.coverPhoto.image) ? [chapter.coverPhoto] : [])
 ].map(memory => ({
   id: memory.id, src: memoryImage(memory), title: memory.title, date: memory.date,
   caption: memory.description, sample: !memory.image,
@@ -386,7 +389,7 @@ function Cinema({ music, onOpen }) {
     <div className="cinema-list">{films.map((film, i) => <motion.button {...reveal} className={"cinema-card cinema-card-" + i} key={film.id} onClick={() => { onOpen(); if (film.youtubeId) music.pause(); setActive(film); }}>
       <span className="ticket-header"><span>OUR LITTLE CINEMA</span><span>ADMIT TWO ♡</span></span>
       <span className="ticket-layout">
-        <span className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={film.posterAlt || "Illustrative preview for " + film.title} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></span>
+        <span className="cinema-thumb"><Photo src={film.poster || [demo.three, demo.two][i % 2]} alt={film.posterAlt || "Illustrative preview for " + film.title} position={film.posterPosition} sample={!film.poster} /><span className="big-play"><Play size={25} fill="currentColor"/></span></span>
         <span className="ticket-details"><span className="eyebrow">FILM 0{i + 1}</span><span className="ticket-title">{film.title}</span><span className="ticket-subtitle">{film.subtitle}</span>
           <span className="cinema-link">{film.youtubeId || film.src ? "Watch this memory" : "Preview this film"} <ArrowRight size={15}/></span>
         </span>
@@ -413,7 +416,9 @@ function Finale() {
   const [arrived, setArrived] = useState(false);
   return <motion.section className={"finale" + (arrived ? " has-arrived" : "") + (show ? " has-letter-open" : "")} id="finale"
     onViewportEnter={() => setArrived(true)} viewport={{ once: true, amount: 0.15 }}>
-    <Photo className="finale-photo" src={settings.heroImage || demo.hero} alt={settings.heroImage ? settings.heroImageAlt : "Illustrative sunset photograph of a couple"} position={settings.heroImagePosition} sample={!settings.heroImage} />
+    <Photo className="finale-photo" src={settings.finaleImage || settings.heroImage || demo.hero}
+      alt={settings.finaleImage ? settings.finaleImageAlt : settings.heroImage ? settings.heroImageAlt : "Illustrative sunset photograph of a couple"}
+      position={settings.finaleImagePosition || settings.heroImagePosition} sample={!settings.finaleImage && !settings.heroImage} />
     <div className="finale-shade" />
     <div className="finale-warmth" aria-hidden="true" />
     <div className="film-grain" aria-hidden="true" />

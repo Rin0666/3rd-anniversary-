@@ -12,7 +12,10 @@ export const settings = {
   "heroImageAlt": "Our shoes by the lake beneath the evening sky",
   "heroImagePosition": "center 85%",
   "monogram": "R. & D.",
-  "signature": "R. & D."
+  "signature": "R. & D.",
+  "finaleImage": "/media/photos/forever-under-the-tree.webp",
+  "finaleImageAlt": "A quiet moment together beside a large tree at night",
+  "finaleImagePosition": "center 62%"
 };
 
 export const chapters = [
@@ -29,9 +32,9 @@ export const chapters = [
       "date": "YEAR ONE",
       "title": "The Beginning",
       "description": "The first chapter of a story I never want to end.",
-      "image": "/media/photos/year-one-together.webp",
-      "alt": "Together in a mirror photo, dressed up with a bouquet",
-      "imagePosition": "center 30%"
+      "image": "/media/photos/year-one-garden-embrace.webp",
+      "alt": "Embracing in a garden beside a stone sculpture",
+      "imagePosition": "center 65%"
     },
     "memories": [
       {
@@ -63,9 +66,9 @@ export const chapters = [
         "title": "Our First Anniversary",
         "description": "Write about your first anniversary and what that first year together meant to you.",
         "secret": "A thought you kept from your first anniversary.",
-        "image": "/media/photos/cover-lakeside.webp",
-        "alt": "Our shoes by the lake beneath the evening sky",
-        "imagePosition": "center 85%"
+        "image": "/media/photos/year-one-together.webp",
+        "alt": "Together in a mirror photo, dressed up with a bouquet",
+        "imagePosition": "center 30%"
       }
     ],
     "overviewPhoto": {
@@ -135,13 +138,27 @@ export const chapters = [
         "image": "/media/photos/year-two-dressed-up.webp",
         "alt": "A selfie together, dressed up beside green plants",
         "imagePosition": "center 70%"
+      },
+      {
+        "id": "year-two-garden-smiles",
+        "title": "A smile worth keeping",
+        "date": "FROM OUR CAMERA ROLL",
+        "description": "One more smile, saved between our pages.",
+        "image": "/media/photos/year-two-garden-smiles.webp",
+        "alt": "Smiling together beside bright green garden plants",
+        "imagePosition": "center 35%"
       }
     ],
     "keepsakeIds": [
-      "adventure",
+      "year-two-garden-smiles",
       "year-two-anniversary",
       "year-two-dressed-up"
-    ]
+    ],
+    "overviewPhoto": {
+      "image": "/media/photos/overview-year-two.webp",
+      "alt": "A selfie together, dressed up beside a bright storefront",
+      "imagePosition": "center 35%"
+    }
   },
   {
     "id": "three",
@@ -182,7 +199,7 @@ export const chapters = [
         "description": "Your anniversary reflection goes here. Be honest, funny, and very much yourself.",
         "secret": "A promise for our next chapter.",
         "image": "/media/photos/year-three-together.webp",
-        "alt": "A close-up selfie together in matching floral shirts",
+        "alt": "A close-up selfie together in matching floral shirts, with a peace sign",
         "imagePosition": "center 30%"
       }
     ],
@@ -195,12 +212,26 @@ export const chapters = [
         "image": "/media/photos/year-three-night-drive.webp",
         "alt": "A playful selfie together inside a car at night",
         "imagePosition": "center 35%"
+      },
+      {
+        "id": "year-three-cinema",
+        "title": "At the movies, with you",
+        "date": "FROM OUR CAMERA ROLL",
+        "description": "A little moment together among the red cinema seats.",
+        "image": "/media/photos/camera-roll-cinema.webp",
+        "alt": "A playful selfie together in red cinema seats",
+        "imagePosition": "center 45%"
       }
     ],
     "keepsakeIds": [
       "year-three-night-drive",
-      "home"
-    ]
+      "year-three-cinema"
+    ],
+    "overviewPhoto": {
+      "image": "/media/photos/overview-year-three.webp",
+      "alt": "Holding flowers amid a crowd under evening lights",
+      "imagePosition": "center 65%"
+    }
   }
 ];
 
@@ -233,6 +264,16 @@ export const looseSnapshots = [
     "description": "A pink rose and a smile worth keeping.",
     "image": "/media/photos/snapshot-rose.webp",
     "alt": "Smiling behind a pink rose at a table",
+    "aspectRatio": "3 / 4"
+  },
+  {
+    "id": "camera-roll-floral-close",
+    "chapterId": "three",
+    "title": "A little closer",
+    "date": "FROM OUR CAMERA ROLL",
+    "description": "Another little frame of us to keep.",
+    "image": "/media/photos/snapshot-floral-close.webp",
+    "alt": "Leaning close together in matching floral shirts",
     "aspectRatio": "3 / 4"
   }
 ];
@@ -278,8 +319,9 @@ export const films = [
     "title": "Our Pangasinan Trip",
     "subtitle": "An adventure worth keeping",
     "youtubeId": "VXpxK8CZH1I",
-    "poster": "/media/photos/cover-lakeside.webp",
-    "posterAlt": "Our lakeside cover photograph"
+    "poster": "/media/photos/trip-beach-poster.webp",
+    "posterAlt": "Sitting together facing the sea on a sandy beach",
+    "posterPosition": "center 60%"
   },
   {
     "id": "tree-dance",

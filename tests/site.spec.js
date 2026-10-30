@@ -80,7 +80,7 @@ test('chapter navigation survives a reload', async ({ page }) => {
   await treeOpener.click();
   const album = page.getByRole('dialog', { name: 'Our photo album' });
   await expect(album.getByRole('heading')).toHaveText('Our Favorite Tree');
-  await expect(album.getByRole('status')).toHaveText('Photo 17 of 17');
+  await expect(album.getByRole('status')).toHaveText('Photo 20 of 20');
   await expect(album.locator('.sample-tag')).toHaveCount(0);
   await expect.poll(() => album.locator('.album-photo img').evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
   await page.keyboard.press('Escape');
@@ -102,7 +102,7 @@ test('memory notes expand and fold away', async ({ page }) => {
   await enterStory(page);
   await expect(page.locator('.memory-card')).toHaveCount(9);
   await expect(page.locator('#chapter-one .memory-card h3')).toHaveText(['Our First Meet', 'Our First Monthsary', 'Our First Anniversary']);
-  await expect(page.locator('#chapter-one .memory-card').nth(2).locator('img')).toHaveAttribute('src', '/media/photos/cover-lakeside.webp');
+  await expect(page.locator('#chapter-one .memory-card').nth(2).locator('img')).toHaveAttribute('src', '/media/photos/year-one-together.webp');
   const memory = page.locator('.memory-card').first();
   const toggle = memory.locator('.confession-toggle');
   await toggle.click();
@@ -243,6 +243,17 @@ test('the story works without remote media and fits the viewport', async ({ page
   await expect(page.locator('.hero-photo img')).toBeVisible();
   await expect.poll(() => page.locator('.hero-photo img').evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
   await expect(page.locator('.sample-tag')).toHaveCount(0);
+  const photos = page.locator('.site .photo > img');
+  await expect(photos).toHaveCount(27);
+  const sources = await photos.evaluateAll(images => images.map(image => image.getAttribute('src')));
+  expect(new Set(sources).size, 'Every permanent photo placement has its own image').toBe(sources.length);
+  const decoded = await page.evaluate(urls => Promise.all(urls.map(url => new Promise(resolve => {
+    const image = new Image();
+    image.onload = () => resolve(image.naturalWidth > 0);
+    image.onerror = () => resolve(false);
+    image.src = url;
+  }))), sources);
+  expect(decoded.every(Boolean), 'Every distinct photograph loads from Cloudflare').toBe(true);
   for (const id of ['overview', 'chapter-one', 'chapter-two', 'chapter-three', 'favorite-tree', 'soundtrack', 'letters', 'cinema', 'finale']) {
     await page.locator(`#${id}`).scrollIntoViewIfNeeded();
     await expect(page.locator(`#${id} h2`).first()).toBeVisible();
@@ -399,14 +410,14 @@ test('the finale lights warm up as the final message appears', async ({ page }) 
 test('the photo album navigates, traps focus, and returns to its opener', async ({ page }) => {
   await enterStory(page);
   await expect(page.locator('#overview .polaroid img').first()).toHaveAttribute('src', '/media/photos/year-one-smile.webp');
-  await expect(page.locator('#chapter-one .chapter-hero-image img')).toHaveAttribute('src', '/media/photos/year-one-together.webp');
+  await expect(page.locator('#chapter-one .chapter-hero-image img')).toHaveAttribute('src', '/media/photos/year-one-garden-embrace.webp');
   await expect(page.locator('#chapter-one .memory-card img').first()).toHaveAttribute('src', '/media/photos/first-hello.webp');
   const opener = page.locator('#chapter-one .memory-card').first().getByRole('button', { name: /^View photo:/ });
   await opener.click();
   const album = page.getByRole('dialog', { name: 'Our photo album' });
   const close = album.getByRole('button', { name: 'Close photo album' });
   await expect(album.getByRole('heading')).toHaveText('Our First Meet');
-  await expect(album.getByRole('status')).toHaveText('Photo 1 of 17');
+  await expect(album.getByRole('status')).toHaveText('Photo 1 of 20');
   await expect(close).toBeFocused();
   expect(await page.evaluate(() => document.body.style.overflow)).toBe('hidden');
   await page.keyboard.press('Shift+Tab');
@@ -417,16 +428,16 @@ test('the photo album navigates, traps focus, and returns to its opener', async 
   await expect(album.getByRole('heading')).toHaveText('Our First Monthsary');
   await album.getByRole('button', { name: 'Next photo' }).click();
   await expect(album.getByRole('heading')).toHaveText('Our First Anniversary');
-  await expect(album.locator('.album-photo img')).toHaveAttribute('src', '/media/photos/cover-lakeside.webp');
+  await expect(album.locator('.album-photo img')).toHaveAttribute('src', '/media/photos/year-one-together.webp');
   await album.getByRole('button', { name: 'Previous photo' }).click();
   await expect(album.getByRole('heading')).toHaveText('Our First Monthsary');
   await album.getByRole('button', { name: 'Previous photo' }).click();
   await expect(album.getByRole('heading')).toHaveText('Our First Meet');
   await page.keyboard.press('ArrowLeft');
   await expect(album.getByRole('heading')).toHaveText('Our Favorite Tree');
-  await expect(album.getByRole('status')).toHaveText('Photo 17 of 17');
+  await expect(album.getByRole('status')).toHaveText('Photo 20 of 20');
   await page.keyboard.press('ArrowRight');
-  await expect(album.getByRole('status')).toHaveText('Photo 1 of 17');
+  await expect(album.getByRole('status')).toHaveText('Photo 1 of 20');
   await page.keyboard.press('Escape');
   await expect(album).toHaveCount(0);
   await expect(opener).toBeFocused();
@@ -439,19 +450,19 @@ test('photo strips and paired snapshots open the corresponding memory', async ({
   if (testInfo.project.name === 'mobile') await stripPhoto.tap();
   else await stripPhoto.click();
   const album = page.getByRole('dialog', { name: 'Our photo album' });
-  await expect(album.getByRole('heading')).toHaveText('Anywhere, as long as it’s you');
-  await expect(album.getByRole('status')).toHaveText('Photo 4 of 17');
+  await expect(album.getByRole('heading')).toHaveText('A smile worth keeping');
+  await expect(album.getByRole('status')).toHaveText('Photo 12 of 20');
   await album.getByRole('button', { name: 'Close photo album' }).click();
   await expect(album).toHaveCount(0);
   const pairedPhoto = page.locator('.snapshot-pair .photo-open').nth(1);
   if (testInfo.project.name === 'mobile') await pairedPhoto.tap();
   else await pairedPhoto.click();
-  await expect(album.getByRole('heading')).toHaveText('Home looks a lot like you');
-  await expect(album.getByRole('status')).toHaveText('Photo 8 of 17');
+  await expect(album.getByRole('heading')).toHaveText('At the movies, with you');
+  await expect(album.getByRole('status')).toHaveText('Photo 14 of 20');
   await album.getByRole('button', { name: 'Close photo album' }).click();
   await expect(album).toHaveCount(0);
   await expect(pairedPhoto).toBeFocused();
-  for (const title of ['One more smile to keep', 'You & me', 'Still my favorite view']) {
+  for (const title of ['One more smile to keep', 'You & me', 'Still my favorite view', 'A little closer']) {
     const keepsake = page.locator('.camera-roll-keepsake').filter({ hasText: title });
     await keepsake.locator('.photo-open').click();
     await expect(album.getByRole('heading')).toHaveText(title);

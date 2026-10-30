@@ -82,11 +82,13 @@ All personal stories, chapter text, letters, music players and videos are in **`
 | Content | Where to edit |
 | --- | --- |
 | Site title and dedication | `settings` |
-| Hero/finale photo, alt text, and crop | `settings.heroImage`, `settings.heroImageAlt`, `settings.heroImagePosition` |
+| Opening photo, alt text, and crop | `settings.heroImage`, `settings.heroImageAlt`, `settings.heroImagePosition` |
+| Separate finale background and crop | `settings.finaleImage`, `settings.finaleImageAlt`, `settings.finaleImagePosition` |
 | Days together and calendar timezone | `settings.relationshipStartDate`, `settings.timeZone` |
 | Seal initials and final signature | `settings.monogram`, `settings.signature` |
 | Three years and their memories | `chapters[].memories` |
 | Separate overview Polaroid image | `chapters[].overviewPhoto` |
+| Separate chapter introduction photo | `chapters[].coverPhoto` |
 | Extra year-two and year-three strip/snapshot photos | `chapters[].extraPhotos`, `chapters[].keepsakeIds` |
 | Camera-roll Polaroids tucked into each year | `looseSnapshots` |
 | Favorite tree photo, crop, caption, and note | `favoriteTree` |
@@ -103,11 +105,11 @@ All personal stories, chapter text, letters, music players and videos are in **`
 
 ### Replacing a photo
 
-The opening and finale share `settings.heroImage`, currently the supplied lakeside cover photo. Set `settings.heroImageAlt` and adjust `settings.heroImagePosition` to keep your subject in the crop. An empty value restores the illustrative fallback. The opening adds a warm tint, vignette, and fine film texture.
+The opening uses the supplied lakeside cover photo in `settings.heroImage`; the finale has its own nighttime tree photograph in `settings.finaleImage`. Their alt text and crop positions are configured separately. An empty finale image falls back to the opening image. The opening adds a warm tint, vignette, and fine film texture.
 
-All 16 photographs from the uploaded ZIP, the separately uploaded tree photo, and the newer first-meet photo from GitHub are used. Browser-ready copies are in `public/media/photos/`, converted to WebP with a maximum edge of 1600 pixels, sRGB color, and embedded metadata removed. Original HEIC/JPG uploads are kept outside the repository. The first-year memories read **Our First Meet → Our First Monthsary → Our First Anniversary**, with the lakeside cover used for the anniversary. The former third-card photo now appears in the year-one overview Polaroid. The album includes the main memories, extra chapter keepsakes, camera-roll Polaroids, year-one cover, and favorite tree.
+All 26 supplied photographs are used: the 16-photo ZIP, the separately uploaded tree, the newer first-meet photograph from GitHub, and all eight pictures in `8pictures.zip`. Browser-ready copies are in `public/media/photos/`, converted to WebP with a maximum edge of 1600 pixels, sRGB color, and embedded metadata removed. Originals stay outside the repository. The first-year memories read **Our First Meet → Our First Monthsary → Our First Anniversary**. The first-meet photograph remains intact, and the dressed-up mirror photograph from the original year-one cover is reserved for the anniversary card. The former third-card photo appears in the year-one overview Polaroid. The chapter introduction, later-year overview cards, photo strip, paired snapshots, cinema poster, and finale each have a separate image; the eighth extra photograph has its own camera-roll Polaroid.
 
-The layout currently has 26 permanent image placements and 19 distinct available images (18 supplied photos plus a video-frame poster). Seven additional unique photos are needed to give every permanent placement a separate image. The opening animation and album remain alternate views of the corresponding scrapbook photographs.
+Every permanent image placement is unique: 27 placements use 26 photographs and one video-frame poster. The opening animation and the 20-photo album remain alternate views of the corresponding scrapbook photographs. A chapter cover already shown in a memory opens that memory without adding a duplicate album entry.
 
 In `src/content.js`, set each memory's `image` to a valid, accessible URL, e.g. `image: "/media/my-memory.webp"` **only when the site is secured and the photo is not private**. For personal media, prefer an authenticated asset endpoint backed by private Cloudflare R2, then reference those protected URLs. For now, blank `image` values use illustrative photos, with a **SAMPLE PHOTO** label.
 
