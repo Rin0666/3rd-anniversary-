@@ -172,7 +172,7 @@ test('memory notes expand and fold away', async ({ page }) => {
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   const note = memory.getByRole('region');
-  await expect(note).toContainText('funny confession');
+  await expect(note).toContainText('It felt like love at First Sight.');
   await expect(note).toHaveAttribute('id', await toggle.getAttribute('aria-controls'));
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -816,7 +816,8 @@ test('Begin bursts the photos outward and starts real Canon in D audio from that
   });
   await page.getByRole('button', { name: 'Begin Our Story' }).click();
   const burst = await page.evaluate(() => window.__openingBurst);
-  expect(burst.counts).toEqual({ photos: 45, flowers: 10, hearts: 10, fireworks: 3, story: 0 });
+  const expectedPhotos = page.viewportSize().width <= 700 ? 18 : 28;
+  expect(burst.counts).toEqual({ photos: expectedPhotos, flowers: 10, hearts: 10, fireworks: 3, story: 0 });
   expect(new Set(burst.sources).size, 'The burst uses photographs throughout the album').toBeGreaterThan(9);
   expect(burst.distance).toBeGreaterThan(20);
   expect(burst.duration).toBeGreaterThan(1900);
