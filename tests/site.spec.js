@@ -633,6 +633,24 @@ test('scrolling launches butterflies that fly across without blocking controls',
   await expect(layer).toBeHidden();
 });
 
+test('butterflies keep flying when scrolling continues beyond the first flight', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await enterStory(page);
+  const butterfly = page.locator('.scroll-butterfly').first();
+  await page.evaluate(() => window.scrollTo({ top: 350, behavior: 'instant' }));
+  await expect.poll(() => butterfly.evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.08);
+
+  // Emulate a long, ongoing scroll without waiting for the animation to stop.
+  await page.evaluate(async () => {
+    const started = performance.now();
+    while (performance.now() - started < 9000) {
+      window.scrollBy({ top: 6, behavior: 'instant' });
+      await new Promise(resolve => setTimeout(resolve, 90));
+    }
+  });
+  await expect.poll(() => butterfly.evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.08);
+});
+
 test('the sealed final envelope reveals the letter and tulip/sunflower bouquet', async ({ page }) => {
   await enterStory(page);
   const envelope = page.getByRole('button', { name: 'Open our final letter' });

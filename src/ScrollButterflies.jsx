@@ -21,6 +21,8 @@ export default function ScrollButterflies() {
       let height = window.innerHeight;
       let previousScroll = window.scrollY;
       let lastLaunch = -Infinity;
+      let lastScroll = -Infinity;
+      let directionDown = true;
       let frame = null;
       const flights = butterflies.map((butterfly, index) => ({ ...butterfly, node: layer.children[index], active: false }));
 
@@ -28,11 +30,19 @@ export default function ScrollButterflies() {
         let flying = false;
         flights.forEach((flight, index) => {
           if (!flight.active) return;
-          const progress = (now - flight.started) / flight.duration;
+          let progress = (now - flight.started) / flight.duration;
           if (progress >= 1) {
-            flight.active = false;
-            flight.node.style.opacity = '0';
-            return;
+            // A finished flight should not make the butterflies disappear
+            // while the visitor is still actively scrolling.
+            if (now - lastScroll < 1200) {
+              flight.started = now;
+              flight.fromLeft = directionDown;
+              progress = 0;
+            } else {
+              flight.active = false;
+              flight.node.style.opacity = '0';
+              return;
+            }
           }
           flying = true;
           const distance = width + flight.size * 3;
@@ -49,7 +59,10 @@ export default function ScrollButterflies() {
         const delta = window.scrollY - previousScroll;
         previousScroll = window.scrollY;
         const now = performance.now();
-        if (!delta || document.hidden || now - lastLaunch < 700) return;
+        if (!delta || document.hidden) return;
+        lastScroll = now;
+        directionDown = delta > 0;
+        if (now - lastLaunch < 700) return;
         const available = width <= 700 ? flights.slice(0, 2) : flights;
         const flight = available.find(item => !item.active);
         if (!flight) return;
@@ -63,6 +76,7 @@ export default function ScrollButterflies() {
         flights.forEach(flight => { flight.active = false; flight.node.style.opacity = '0'; });
         previousScroll = window.scrollY;
         lastLaunch = -Infinity;
+        lastScroll = -Infinity;
       };
       const resize = () => { clear(); width = window.innerWidth; height = window.innerHeight; };
       window.addEventListener('scroll', onScroll, { passive: true });
