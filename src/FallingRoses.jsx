@@ -24,7 +24,7 @@ export default function FallingRoses() {
       let width = window.innerWidth;
       let height = window.innerHeight;
       let previousScroll = window.scrollY;
-      let previousTime = null;
+      let previousTime = performance.now();
       let riseImpulse = 0;
       let fallBoost = 0;
       let direction = 1;
@@ -57,7 +57,10 @@ export default function FallingRoses() {
       };
 
       const animate = now => {
-        const seconds = previousTime === null ? 0 : Math.min((now - previousTime) / 1000, 0.05);
+        // Keep the resting speed steady through slower paint frames. A short
+        // cap still prevents a visible leap after a long main-thread stall;
+        // visibility changes separately reset the clock when returning to a tab.
+        const seconds = previousTime === null ? 0 : Math.min((now - previousTime) / 1000, 0.25);
         previousTime = now;
         elapsed += seconds;
         const riseStep = riseImpulse * (1 - Math.exp(-18 * seconds));

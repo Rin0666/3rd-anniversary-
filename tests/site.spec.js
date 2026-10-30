@@ -270,15 +270,21 @@ test('roses fall gently and follow the direction of scrolling', async ({ page })
   await expect(layer).toHaveCSS('pointer-events', 'none');
 
   // Measure actual movement over time, rather than animation implementation details.
-  const measureSpeed = destination => page.evaluate(async destination => {
+  const measureSpeed = destination => page.evaluate(destination => new Promise(resolve => {
     const rose = document.querySelector('.falling-rose');
     const position = () => new DOMMatrixReadOnly(getComputedStyle(rose).transform).m42;
-    const startY = position();
-    const startTime = performance.now();
-    if (destination !== null) window.scrollTo({ top: destination, behavior: 'instant' });
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return (position() - startY) / ((performance.now() - startTime) / 1000);
-  }, destination);
+    // Sample on painted frames so a delayed timer cannot count movement from
+    // before the measurement window or miss the final animation update.
+    requestAnimationFrame(startTime => {
+      const startY = position();
+      if (destination !== null) window.scrollTo({ top: destination, behavior: 'instant' });
+      const sample = now => {
+        if (now - startTime < 300) requestAnimationFrame(sample);
+        else resolve((position() - startY) / ((now - startTime) / 1000));
+      };
+      requestAnimationFrame(sample);
+    });
+  }), destination);
 
   const restingSpeed = await measureSpeed(null);
   expect(restingSpeed).toBeGreaterThan(0);
@@ -698,4 +704,77 @@ test('Begin bursts the photos outward and starts real Canon in D audio from that
   await expect.poll(() => page.evaluate(() => window.__musicContexts[0].state)).toBe('running');
   expect(await page.evaluate(() => window.__musicContexts.length)).toBe(1);
   await player.click();
+});
+
+test('cinematic photos move gently inside their frames and stop for reduced motion', async ({ page }) => {
+  await enterStory(page);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const photo = page.locator('#chapter-one .chapter-hero-image .photo');
+  await photo.scrollIntoViewIfNeeded();
+  const drift = () => photo.evaluate(element => element.style.getPropertyValue('--photo-drift'));
+  await expect.poll(drift).not.toBe('');
+  const before = await drift();
+  await page.evaluate(() => window.scrollBy({ top: 150, behavior: 'instant' }));
+  await expect.poll(drift).not.toBe(before);
+  expect(Math.abs(parseFloat(await drift()))).toBeLessThanOrEqual(9);
+  const coverage = await photo.evaluate(element => {
+    const frame = element.getBoundingClientRect();
+    const image = element.querySelector('img').getBoundingClientRect();
+    return image.top <= frame.top && image.bottom >= frame.bottom;
+  });
+  expect(coverage, 'Photo movement never exposes an empty edge').toBe(true);
+  await photo.getByRole('button').click();
+  await expect(page.getByRole('dialog', { name: 'Our photo album' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close photo album' }).click();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(drift).toBe('');
+  await expect(photo.locator('img')).toHaveCSS('transform', 'none');
+  await expect(page.locator('#chapter-one .chapter-titles')).toHaveCSS('opacity', '1');
+});
+
+test('chapter interludes and the staged finale stay readable with reduced motion', async ({ page }) => {
+  await enterStory(page);
+  const interludes = page.getByRole('complementary', { name: 'Between our chapters' });
+  await expect(interludes).toHaveCount(3);
+  for (const interlude of await interludes.all()) {
+    await interlude.scrollIntoViewIfNeeded();
+    await expect(interlude.locator('p')).toBeInViewport();
+    await expect(interlude.locator('div').first()).toHaveCSS('opacity', '1');
+  }
+  const finale = page.locator('#finale');
+  await finale.scrollIntoViewIfNeeded();
+  for (const selector of ['h2', '.finale-promise', '.final-envelope-trigger']) {
+    await expect(finale.locator(selector)).toHaveCSS('opacity', '1');
+    await expect(finale.locator(selector)).toHaveCSS('transform', 'none');
+  }
+  const envelope = finale.getByRole('button', { name: 'Open our final letter' });
+  await envelope.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'My Favorite Story Is Us' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(envelope).toBeFocused();
+});
+
+test('motion-enabled chapter keepsakes and the finale reveal as they enter view', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/#chapter-two');
+  await page.getByRole('button', { name: 'Begin Our Story' }).click();
+  await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'true');
+  await page.locator('.background-music-toggle').click();
+  const heading = page.locator('#chapter-two .chapter-titles');
+  await heading.scrollIntoViewIfNeeded();
+  await expect(heading).toHaveCSS('opacity', '1');
+  for (const frame of await page.locator('#chapter-two .keepsake-frame').all()) {
+    await frame.scrollIntoViewIfNeeded();
+    await expect(frame).toHaveCSS('opacity', '1');
+  }
+  const promise = page.locator('.finale-promise');
+  await expect(promise).toHaveCSS('opacity', '0');
+  await promise.scrollIntoViewIfNeeded();
+  await expect(promise).toHaveCSS('opacity', '1');
+  const envelope = page.getByRole('button', { name: 'Open our final letter' });
+  await envelope.scrollIntoViewIfNeeded();
+  await expect(envelope).toHaveCSS('opacity', '1');
+  await envelope.click();
+  await expect(page.getByRole('dialog', { name: 'My Favorite Story Is Us' })).toBeVisible();
 });

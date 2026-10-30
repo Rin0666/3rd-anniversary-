@@ -87,6 +87,7 @@ All personal stories, chapter text, letters, music players and videos are in **`
 | Days together and calendar timezone | `settings.relationshipStartDate`, `settings.timeZone` |
 | Seal initials and final signature | `settings.monogram`, `settings.signature` |
 | Three years and their memories | `chapters[].memories` |
+| Short pauses between the years | `memoryInterludes` |
 | Separate overview Polaroid image | `chapters[].overviewPhoto` |
 | Separate chapter introduction photo | `chapters[].coverPhoto` |
 | Extra year-two and year-three strip/snapshot photos | `chapters[].extraPhotos`, `chapters[].keepsakeIds` |
@@ -141,6 +142,7 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 
 ## Design decisions
 
+- Photos drift gently inside their frames as the story scrolls; chapter scenery moves at a different depth. Short interludes give each year room to settle before the next begins. Chapter headings, scrapbook photos and captions, and the final promise and envelope arrive in a soft sequence. Reduced motion shows this content immediately and disables photo/scenery movement, including when the preference changes while reading.
 - Scroll-first single-column story on mobile; tasteful two-column memory grids on large screens
 - Cinematic hero and finale, warm torn-paper sections, Polaroid photographs, handwritten accents
 - Responsive tap targets, in-page navigation, smooth transitions, reduced-motion support
@@ -181,6 +183,8 @@ On Linux, `npx playwright install --with-deps chromium` can install the browser'
 ```bash
 PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test
 ```
+
+On CPU-limited cloud machines, run `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm test -- --workers=1` to avoid contention between browsers during the animation checks.
 
 The suite checks mobile and desktop layouts, production asset delivery and caching, the single-page app fallback, chapter links and reloads, memory notes, Polaroid interactions, photo album navigation/focus/wrapping, photo-strip and camera-roll snapshot entry points, active chapter ribbons, monograms/signatures, letter animation and keyboard focus, finale lighting, both YouTube embed destinations and music pausing, falling roses and scroll direction, reduced motion, the anniversary counter across Manila midnight, and JavaScript errors. Date arithmetic also has Node.js tests for leap days, timezone boundaries, and invalid dates. Browser tests block optional external requests while verifying local personal images still load. A local iframe fixture verifies on-demand embeds, portrait/landscape sizing, focus, and cleanup without depending on YouTube's live player. Actual YouTube and Spotify playback is controlled by those providers.
 

@@ -18,6 +18,12 @@ export const settings = {
   "finaleImagePosition": "center 62%"
 };
 
+export const memoryInterludes = [
+  { eyebrow: 'a page turns', text: 'Somewhere along the way, you became my favorite everyday.' },
+  { eyebrow: 'another season, still us', text: 'The little moments became the life I love.' },
+  { eyebrow: 'and the story keeps growing', text: 'There is still so much of us left to discover.' },
+];
+
 export const chapters = [
   {
     "id": "one",

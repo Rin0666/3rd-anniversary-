@@ -20,6 +20,7 @@ import { BackgroundMusic, StoryBurst } from "./StoryOpening";
 import FittedLetter from "./FittedLetter";
 import FavoriteTree from "./FavoriteTree";
 import LooseSnapshot from "./LooseSnapshot";
+import { ChapterScenery, MemoryInterlude, ScrapbookReveal, useCinematicScroll } from "./CinematicScroll";
 
 // Public, illustrative Unsplash images. Replace with your own approved photos
 // in src/content.js. Never commit personal or private media to a public repo.
@@ -136,7 +137,7 @@ function Hero({ phase, onBegin }) {
   const reducedMotion = useReducedMotion();
   const opened = phase === 'open';
   return <section id="home" className="hero" style={{ "--hero-focus": settings.heroImagePosition }}>
-    <Photo className="hero-photo" src={settings.heroImage || demo.hero} eager alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
+    <Photo drift className="hero-photo" src={settings.heroImage || demo.hero} eager alt={settings.heroImage ? settings.heroImageAlt : "Illustrative silhouette of a couple against a sunset"} sample={!settings.heroImage} />
     <div className="hero-shade" />
     <div className="film-grain" aria-hidden="true" />
     <motion.div className="hero-copy" initial={reducedMotion ? false : { opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 1.05 }}>
@@ -157,7 +158,7 @@ function Hero({ phase, onBegin }) {
 
 function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note, noteId, expanded, sample = false, position }) {
   return <div className={"polaroid" + (expanded ? " is-open" : "")} style={{ "--rotation": rotation }}>
-    <Photo src={image} alt={alt || "Illustrative couple photograph"} sample={sample} position={position} />
+    <Photo drift src={image} alt={alt || "Illustrative couple photograph"} sample={sample} position={position} />
     <div className="polaroid-caption">{number && <b>{number}</b>}<div><strong>{title}</strong><em>{subtitle}</em></div></div>
     <div className="polaroid-note-slot" data-expanded={expanded}>
       <span className="polaroid-note" id={noteId} aria-hidden={!expanded}>{note}</span>
@@ -168,7 +169,7 @@ function Polaroid({ image, title, subtitle, rotation = "0deg", number, alt, note
 
 function OverviewCard({ chapter, index, photo, label }) {
   const [expanded, setExpanded] = useState(false);
-  return <motion.div {...reveal} className="overview-link">
+  return <ScrapbookReveal delay={index * .1} className="overview-link">
     <button className="polaroid-toggle" aria-label={`A note from year ${index + 1}`} aria-expanded={expanded}
       aria-controls={`polaroid-note-${chapter.id}`} onClick={() => setExpanded(!expanded)}
       onPointerEnter={event => { if (event.pointerType === "mouse") setExpanded(true); }}
@@ -178,7 +179,7 @@ function OverviewCard({ chapter, index, photo, label }) {
         alt={photo.alt} position={photo.imagePosition} sample={!photo.image} />
     </button>
     <a className="chapter-open" href={"#chapter-" + chapter.id}>Turn to year {index + 1} <ArrowRight size={13} /></a>
-  </motion.div>;
+  </ScrapbookReveal>;
 }
 
 function Overview() {
@@ -200,14 +201,14 @@ function MemoryCard({ memory, index, chapterIndex }) {
   const noteId = `confession-${memory.id}`;
   const openPhoto = usePhotoAlbum();
   const image = memoryImage(memory);
-  return <motion.article {...reveal} className={"memory-card memory-card-" + index}>
+  return <ScrapbookReveal as="article" lift={false} delay={index % 2 * .1} className={"memory-card memory-card-" + index}>
     <div className="memory-photo-wrap">
-      <Photo src={image} alt={memory.image ? (memory.alt || memory.title) : "Illustrative photo for " + memory.title}
+      <Photo drift src={image} alt={memory.image ? (memory.alt || memory.title) : "Illustrative photo for " + memory.title}
         sample={!memory.image} position={memory.imagePosition} onOpen={() => openPhoto(memory.id)} />
       <div className="tape" aria-hidden="true" />
       <span className="memory-date">{memory.date}</span>
     </div>
-    <div className="memory-copy">
+    <ScrapbookReveal delay={.1} className="memory-copy">
       <span className="eyebrow">{memory.date}</span>
       <h3>{memory.title}</h3>
       <p>{memory.description}</p>
@@ -233,8 +234,8 @@ function MemoryCard({ memory, index, chapterIndex }) {
           </div>
         </motion.div>}</AnimatePresence>
       </div>}
-    </div>
-  </motion.article>;
+    </ScrapbookReveal>
+  </ScrapbookReveal>;
 }
 
 function ChapterKeepsakes({ chapter, paired = false }) {
@@ -245,11 +246,11 @@ function ChapterKeepsakes({ chapter, paired = false }) {
     : chapter.memories.slice(0, paired ? 2 : 3);
   return <div className={paired ? "paired-snapshots" : "chapter-keepsakes"}>
     <div className={paired ? "snapshot-pair" : "photo-booth-strip"}>
-      {memories.map((memory, index) => <figure key={memory.id} className="keepsake-frame">
-        <Photo src={memoryImage(memory)} alt={memory.image ? (memory.alt || memory.title) : `Illustrative photo for ${memory.title}`}
+      {memories.map((memory, index) => <ScrapbookReveal as="figure" lift={false} delay={index * .12} key={memory.id} className="keepsake-frame">
+        <Photo drift src={memoryImage(memory)} alt={memory.image ? (memory.alt || memory.title) : `Illustrative photo for ${memory.title}`}
           sample={!memory.image} position={memory.imagePosition} onOpen={() => openPhoto(memory.id)} />
         <figcaption>{paired ? memory.title : `${String(index + 1).padStart(2, '0')} / ${chapter.year}`}</figcaption>
-      </figure>)}
+      </ScrapbookReveal>)}
       {!paired && <span className="booth-strip-label">US, ON REPEAT ♡</span>}
     </div>
     {!paired && <div className="booth-scribble"><span>the scenes between the scenes</span><p>“{chapter.quote}”</p><span className="booth-heart" aria-hidden="true">♡</span></div>}
@@ -263,13 +264,14 @@ function Chapter({ chapter, index }) {
   return <section id={"chapter-" + chapter.id} className={"story-chapter " + (isDark ? "dark-chapter" : "paper-section") + " chapter-" + chapter.id}>
     <FloralSprig className="floral-corner-top" />
     <FloralSprig className="floral-corner-bottom" />
+    <ChapterScenery />
     <div className="chapter-top">
-      <motion.div {...reveal} className="chapter-label"><span className="eyebrow">0{index + 1}. / YEAR {index + 1}</span><span className="chapter-star">♡</span></motion.div>
-      <motion.div {...reveal} className="chapter-titles"><h2>{chapter.name}</h2><em>{index === 0 ? "The Beginning" : index === 1 ? "Growing Together" : "Still You"}</em></motion.div>
-      <motion.p {...reveal} className="chapter-opening">{chapter.intro}</motion.p>
+      <ScrapbookReveal className="chapter-label"><span className="eyebrow">0{index + 1}. / YEAR {index + 1}</span><span className="chapter-star">♡</span></ScrapbookReveal>
+      <ScrapbookReveal delay={.1} className="chapter-titles"><h2>{chapter.name}</h2><em>{index === 0 ? "The Beginning" : index === 1 ? "Growing Together" : "Still You"}</em></ScrapbookReveal>
+      <ScrapbookReveal as="p" delay={.2} className="chapter-opening">{chapter.intro}</ScrapbookReveal>
     </div>
     {index === 0 ? <div className="chapter-hero-image">
-      <Photo src={cover?.image || [demo.one, demo.two, demo.three][index]}
+      <Photo drift src={cover?.image || [demo.one, demo.two, demo.three][index]}
         alt={cover?.image ? (cover.alt || cover.title) : "Illustrative chapter " + (index + 1) + " photograph"}
         position={cover?.imagePosition}
         sample={!cover?.image} onOpen={cover ? () => openPhoto(cover.id) : undefined} />
@@ -279,7 +281,7 @@ function Chapter({ chapter, index }) {
     {index === 2 && <div className="paper-note"><span>THE LITTLE THINGS</span><p>Our morning texts<br/>Our late night talks<br/>Finding comfort in silence<br/>Still choosing each other</p><i>♡</i></div>}
     <div className="memory-stream">{chapter.memories.map((m, i) => <MemoryCard key={m.id} memory={m} index={i} chapterIndex={index} />)}</div>
     {looseSnapshots.filter(photo => photo.chapterId === chapter.id).map(photo => <LooseSnapshot key={photo.id} photo={photo} reversed={index % 2 === 1} />)}
-    <motion.blockquote {...reveal} className="chapter-ending">“{chapter.quote}”<span>♡</span></motion.blockquote>
+    <ScrapbookReveal as="blockquote" className="chapter-ending">“{chapter.quote}”<span>♡</span></ScrapbookReveal>
     <a className="chapter-next" href={index === 2 ? "#favorite-tree" : "#chapter-" + chapters[index + 1].id}>Keep scrolling through our story <ArrowDown size={16}/></a>
     {index !== 1 && <div className={"torn-edge " + (index === 0 ? "torn-dark" : "torn-dark")} />}
   </section>;
@@ -416,7 +418,7 @@ function Finale() {
   const [arrived, setArrived] = useState(false);
   return <motion.section className={"finale" + (arrived ? " has-arrived" : "") + (show ? " has-letter-open" : "")} id="finale"
     onViewportEnter={() => setArrived(true)} viewport={{ once: true, amount: 0.15 }}>
-    <Photo className="finale-photo" src={settings.finaleImage || settings.heroImage || demo.hero}
+    <Photo drift className="finale-photo" src={settings.finaleImage || settings.heroImage || demo.hero}
       alt={settings.finaleImage ? settings.finaleImageAlt : settings.heroImage ? settings.heroImageAlt : "Illustrative sunset photograph of a couple"}
       position={settings.finaleImagePosition || settings.heroImagePosition} sample={!settings.finaleImage && !settings.heroImage} />
     <div className="finale-shade" />
@@ -424,12 +426,12 @@ function Finale() {
     <div className="film-grain" aria-hidden="true" />
     <div className="finale-lights" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i}
       style={{ left: `${8 + (i * 29) % 84}%`, top: `${12 + (i * 17) % 68}%`, "--light-delay": `${i * 0.13}s` }} />)}</div>
-    <motion.div {...reveal} className="finale-copy">
-      <span className="eyebrow">07. / THE GRAND FINALE</span>
-      <h2>And Here We Are,<br/><em>Three Years Later ♡</em></h2>
-      <p>Through every season, every challenge, and every beautiful moment, I'm still so glad it's you. Thank you for three amazing years. Here's to more adventures, more laughter, and a lifetime of us.</p>
-      <span className="finale-promise">{finale.answer}</span>
-      <button className="final-envelope-trigger" onClick={() => setShow(true)} aria-label="Open our final letter">
+    <div className="finale-copy">
+      <ScrapbookReveal as="span" className="eyebrow">07. / THE GRAND FINALE</ScrapbookReveal>
+      <ScrapbookReveal as="h2" delay={.12}>And Here We Are,<br/><em>Three Years Later ♡</em></ScrapbookReveal>
+      <ScrapbookReveal as="p" delay={.22}>Through every season, every challenge, and every beautiful moment, I'm still so glad it's you. Thank you for three amazing years. Here's to more adventures, more laughter, and a lifetime of us.</ScrapbookReveal>
+      <ScrapbookReveal as="span" delay={.3} className="finale-promise">{finale.answer}</ScrapbookReveal>
+      <ScrapbookReveal as="button" delay={.38} className="final-envelope-trigger" onClick={() => setShow(true)} aria-label="Open our final letter">
         <span className="final-envelope" aria-hidden="true">
           <span className="final-envelope-back" /><span className="final-envelope-flap" /><span className="final-envelope-front" />
           <span className="final-envelope-stamp"><SealMark /></span>
@@ -437,8 +439,8 @@ function Finale() {
         </span>
         <span className="final-envelope-label">a letter & a little bouquet</span>
         <span className="final-envelope-hint">break the seal ♡</span>
-      </button>
-    </motion.div>
+      </ScrapbookReveal>
+    </div>
     <div className="finale-bottom"><span>THE END OF CHAPTER THREE</span><h3>{settings.closing}</h3><p>{settings.subclosing}</p><a href="#home">Relive our story <RotateCcw size={15}/></a></div>
     <AnimatePresence>{show && <LetterModal letter={{title:"My Favorite Story Is Us",body:finale.letter}} isFinal onClose={() => setShow(false)}/>}</AnimatePresence>
   </motion.section>;
@@ -455,6 +457,7 @@ export default function App() {
     setActiveSongId(current => current === id ? null : id);
   };
   const opened = phase === 'open';
+  useCinematicScroll(opened);
   const finishOpening = useCallback(() => setPhase('open'), []);
   useEffect(() => {
     if (opened) return;
@@ -494,7 +497,7 @@ export default function App() {
     {opened && <><FallingRoses /><ScrollButterflies /><Header /><ChapterBookmarks /></>}
     <main><Hero phase={phase} onBegin={begin} />
     {opened && <div id="our-story" className="story-content"><Overview />
-    {chapters.map((chapter, i) => <Chapter chapter={chapter} index={i} key={chapter.id}/>)}
+    {chapters.map((chapter, i) => <React.Fragment key={chapter.id}><Chapter chapter={chapter} index={i}/><MemoryInterlude index={i}/></React.Fragment>)}
     <FavoriteTree /><Soundtrack activeSongId={activeSongId} onSongToggle={toggleSong} /><LetterVault /><Cinema music={music} onOpen={() => setActiveSongId(null)} /><Finale /></div>}</main>
     {opened && <><footer className="site-footer"><span>MADE WITH ALL MY LOVE ♡</span><a href="#home">Relive our story <RotateCcw size={15}/></a></footer><BackgroundMusic music={music} /></>}
     {phase === 'bursting' && <StoryBurst photos={albumPhotos} onComplete={finishOpening} />}

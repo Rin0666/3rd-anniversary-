@@ -11,4 +11,5 @@ import './fitted-letter.css';
 import './favorite-tree.css';
 import './personal-media.css';
 import './song-players.css';
+import './cinematic-scroll.css';
 createRoot(document.getElementById('root')).render(<React.StrictMode><App/></React.StrictMode>);

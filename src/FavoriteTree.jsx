@@ -49,7 +49,7 @@ export default function FavoriteTree() {
       <figure className="tree-photo-keepsake">
         <span className="tree-washi" aria-hidden="true" />
         <div className="tree-photo-window" style={{ '--tree-photo-focus': favoriteTree.imagePosition }}>
-          {favoriteTree.image ? <Photo src={favoriteTree.image} alt={favoriteTree.alt} onOpen={() => openPhoto('favorite-tree')} />
+          {favoriteTree.image ? <Photo drift src={favoriteTree.image} alt={favoriteTree.alt} onOpen={() => openPhoto('favorite-tree')} />
             : <><TreeIllustration /><span className="tree-illustration-label">ILLUSTRATED KEEPSAKE</span></>}
         </div>
         <figcaption>{favoriteTree.caption}<span aria-hidden="true">♡</span></figcaption>
