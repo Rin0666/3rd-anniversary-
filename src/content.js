@@ -345,9 +345,7 @@ export const letters = [
     "title": "When You Miss Me",
     "caption": "For the moments we are apart",
     "body": [
-      "Hey, my love,",
-      "Write a personal reassurance here. A memory that makes the distance feel smaller.",
-      "And remember: no distance can undo what we have built."
+      "Love, I miss you too. Just know that even when we are miles apart, I still love and cherish you. Don't overthink about me too much. Just trust me. I'll always choose you."
     ],
     "ps": "P.S. Add your favorite inside joke here."
   },
@@ -356,9 +354,7 @@ export const letters = [
     "title": "When You’re Sad",
     "caption": "A little warmth for hard days",
     "body": [
-      "Hi, sweetheart,",
-      "Write something comforting, specific, and gentle. Remind them of a time they were brave.",
-      "I am always in your corner."
+      "Love, I wish I could take this heavy feeling from you. Since I can't, let me sit with you in it. You don't have to be strong for me. You are loved, exactly as you are, even on the hard days."
     ],
     "ps": "P.S. Your smile is still my favorite."
   },
@@ -367,9 +363,7 @@ export const letters = [
     "title": "When We Disagree",
     "caption": "For when love needs a little patience",
     "body": [
-      "My favorite person,",
-      "Write a real promise about listening, learning, and choosing kindness even on difficult days.",
-      "We are on the same team."
+      "Love, we're on the same team, even when it doesn't feel like it. I'd really want us to understand each other. Let’s give each other time and space, and let's figure it out together."
     ],
     "ps": "P.S. Even when we disagree about where to eat."
   },
@@ -378,9 +372,7 @@ export const letters = [
     "title": "Just Because",
     "caption": "No reason needed",
     "body": [
-      "You,",
-      "Tell them the small things you love: the laugh, the habits, the ordinary magic.",
-      "If I could do this all over again, I would still find you."
+      "Love, I just wanted you to know that you're my favorite person, and I'm grateful for you every single day."
     ],
     "ps": "P.S. I love you more than yesterday."
   }
