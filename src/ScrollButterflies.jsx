@@ -22,7 +22,7 @@ export default function ScrollButterflies() {
       let previousScroll = window.scrollY;
       let lastLaunch = -Infinity;
       let lastScroll = -Infinity;
-      let directionDown = true;
+      let directionDown = null;
       let frame = null;
       const flights = butterflies.map((butterfly, index) => ({ ...butterfly, node: layer.children[index], active: false }));
 
@@ -61,7 +61,19 @@ export default function ScrollButterflies() {
         const now = performance.now();
         if (!delta || document.hidden) return;
         lastScroll = now;
-        directionDown = delta > 0;
+        const nextDirectionDown = delta > 0;
+        if (directionDown !== null && nextDirectionDown !== directionDown) {
+          // Reverse every in-flight butterfly immediately, even when all
+          // available slots are occupied. Preserve its current screen position
+          // instead of teleporting it back to the opposite edge.
+          flights.forEach(flight => {
+            if (!flight.active || flight.fromLeft === nextDirectionDown) return;
+            const progress = Math.max(0, Math.min(1, (now - flight.started) / flight.duration));
+            flight.fromLeft = nextDirectionDown;
+            flight.started = now - (1 - progress) * flight.duration;
+          });
+        }
+        directionDown = nextDirectionDown;
         if (now - lastLaunch < 700) return;
         const available = width <= 700 ? flights.slice(0, 2) : flights;
         const flight = available.find(item => !item.active);
@@ -77,8 +89,16 @@ export default function ScrollButterflies() {
         previousScroll = window.scrollY;
         lastLaunch = -Infinity;
         lastScroll = -Infinity;
+        directionDown = null;
       };
-      const resize = () => { clear(); width = window.innerWidth; height = window.innerHeight; };
+      const resize = () => {
+        // Mobile Safari changes innerHeight while the browser chrome expands
+        // or collapses during a swipe. Resetting flights here caused flicker
+        // and disappearance specifically when scrolling upward.
+        width = window.innerWidth;
+        height = window.innerHeight;
+        previousScroll = window.scrollY;
+      };
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', resize);
       document.addEventListener('visibilitychange', clear);

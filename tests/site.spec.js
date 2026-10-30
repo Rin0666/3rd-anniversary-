@@ -678,6 +678,31 @@ test('butterflies keep flying when scrolling continues beyond the first flight',
   await expect.poll(() => butterfly.evaluate(node => Number(getComputedStyle(node).opacity))).toBeGreaterThan(.08);
 });
 
+test('butterflies reverse while scrolling up and survive a mobile viewport resize', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await enterStory(page);
+  const butterfly = page.locator('.scroll-butterfly').first();
+  const position = () => butterfly.evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).m41);
+  const opacity = () => butterfly.evaluate(node => Number(getComputedStyle(node).opacity));
+
+  await page.evaluate(() => window.scrollTo({ top: 1700, behavior: 'instant' }));
+  await expect.poll(opacity, { timeout: 5000 }).toBeGreaterThan(.5);
+
+  // An upward swipe must turn the existing flight around; it must not
+  // wait for a free butterfly slot or make the current flight disappear.
+  await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));
+  const before = await position();
+  await page.waitForTimeout(250);
+  expect(await position()).toBeLessThan(before - 3);
+
+  // Height-only resize events fire during iPhone Safari's toolbar movement.
+  // They should never reset opacity or clear the active animation.
+  const visibleBeforeResize = await opacity();
+  expect(visibleBeforeResize).toBeGreaterThan(.05);
+  await page.evaluate(() => window.dispatchEvent(new Event('resize')));
+  expect(await opacity()).toBeGreaterThan(.05);
+});
+
 test('the sealed final envelope reveals the letter and tulip/sunflower bouquet', async ({ page }) => {
   await enterStory(page);
   const envelope = page.getByRole('button', { name: 'Open our final letter' });
