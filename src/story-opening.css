@@ -10,6 +10,22 @@
 .story-burst-photo .photo { height: 155px; }
 .story-burst-photo figcaption { margin-top: 9px; font-family: 'Caveat',cursive; font-size: 20px; line-height: 1.1; color: #9b626d; text-align: center; }
 .story-burst-photo .sample-tag { font-size: 5px; padding: 3px 4px; }
+.story-burst-keepsake { position: absolute; z-index: 1; top: 50%; left: 50%; margin: -17px; width: 34px; height: 34px; display: grid; place-items: center; }
+.burst-heart svg { fill: currentColor; }
+.burst-flower svg { fill: #f9e4c9; }
+.story-burst-firework { position: absolute; z-index: 2; width: 0; height: 0; color: #f9d49c; }
+.burst-firework-0 { top: 30%; left: 26%; }
+.burst-firework-1 { top: 26%; left: 74%; color: #efb6c4; }
+.burst-firework-2 { top: 66%; left: 50%; }
+.story-burst-firework i { position: absolute; width: 3px; height: 11px; margin: -5px -1px; background: currentColor; border-radius: 3px; opacity: 0; animation: opening-firework .85s ease-out var(--spark-delay) both; }
+@keyframes opening-firework {
+  0% { opacity: 0; transform: translate(0,0) rotate(var(--spark-angle)) scaleY(.5); }
+  20% { opacity: .9; }
+  100% { opacity: 0; transform: translate(var(--spark-x),var(--spark-y)) rotate(var(--spark-angle)) scaleY(.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-burst-photo, .story-burst-keepsake, .story-burst-firework { display: none; }
+}
 .background-music { position: fixed; z-index: 22; left: 18px; bottom: max(18px,env(safe-area-inset-bottom)); }
 .background-music-toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 9px 13px; border: 1px solid #b47c8a66; border-radius: 30px; background: #2a1824ed; color: #edc4bc; box-shadow: 0 4px 15px #140a1840; }
 .background-music-name { font-family: 'Cormorant Garamond',Georgia,serif; font-size: 18px; line-height: 1; }

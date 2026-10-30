@@ -674,18 +674,36 @@ test('Begin bursts the photos outward and starts real Canon in D audio from that
   });
   await page.goto('/');
   expect(await page.evaluate(() => window.__musicContexts.length)).toBe(0);
-  await page.getByRole('button', { name: 'Begin Our Story' }).click();
-  await expect(page.locator('.site')).toHaveAttribute('data-story-state', 'bursting');
-  await expect(page.locator('.story-burst-photo')).toHaveCount(9);
-  await expect(page.locator('#our-story')).toHaveCount(0);
-  const burstDistance = await page.locator('.story-burst-photo').first().evaluate(async node => {
-    const position = () => new DOMMatrixReadOnly(getComputedStyle(node).transform);
-    const start = position();
-    await new Promise(resolve => setTimeout(resolve, 180));
-    const end = position();
-    return Math.hypot(end.m41 - start.m41, end.m42 - start.m42);
+  // Observe the whole short burst inside the page, starting before the click.
+  // Browser automation round trips must not consume its measurement window.
+  await page.evaluate(() => {
+    window.__openingBurst = new Promise(resolve => {
+      const observer = new MutationObserver(() => {
+        const node = document.querySelector('.story-burst-photo');
+        if (!node) return;
+        observer.disconnect();
+        const count = selector => document.querySelectorAll(selector).length;
+        const counts = { photos: count('.story-burst-photo'), flowers: count('.burst-flower'),
+          hearts: count('.burst-heart'), fireworks: count('.story-burst-firework'), story: count('#our-story') };
+        const sources = [...document.querySelectorAll('.story-burst-photo img')].map(image => image.getAttribute('src'));
+        const start = new DOMMatrixReadOnly(getComputedStyle(node).transform);
+        const result = { counts, sources, distance: 0 };
+        const sample = () => {
+          if (!node.isConnected) return resolve(result);
+          const end = new DOMMatrixReadOnly(getComputedStyle(node).transform);
+          result.distance = Math.max(result.distance, Math.hypot(end.m41 - start.m41, end.m42 - start.m42));
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
   });
-  expect(burstDistance).toBeGreaterThan(20);
+  await page.getByRole('button', { name: 'Begin Our Story' }).click();
+  const burst = await page.evaluate(() => window.__openingBurst);
+  expect(burst.counts).toEqual({ photos: 45, flowers: 10, hearts: 10, fireworks: 3, story: 0 });
+  expect(new Set(burst.sources).size, 'The burst uses photographs throughout the album').toBeGreaterThan(9);
+  expect(burst.distance).toBeGreaterThan(20);
   await expect.poll(() => page.evaluate(() => {
     if (!window.__musicAnalyser) return 0;
     const samples = new Float32Array(window.__musicAnalyser.fftSize);
@@ -693,6 +711,7 @@ test('Begin bursts the photos outward and starts real Canon in D audio from that
     return Math.max(...samples.map(Math.abs));
   })).toBeGreaterThan(.0001);
   await expect(page.locator('.site')).toHaveAttribute('data-story-ready', 'true');
+  await expect(page.locator('.story-burst')).toHaveCount(0);
   const player = page.locator('.background-music-toggle');
   await expect(player).toHaveAttribute('aria-pressed', 'true');
   expect(await page.evaluate(() => window.__musicContexts.length)).toBe(1);

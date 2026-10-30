@@ -156,7 +156,7 @@ The relationship start date is **November 1, 2023**, stored as `settings.relatio
 - The finale gradually warms its lighting as it enters view, with an extra glow around the last letter
 - A closed envelope sealed with R. & D. replaces the finale button; opening it reveals the final message and a bouquet of her favorite tulips and sunflowers, with small daisies and greenery
 - The botanical bouquet has layered tulip petals, double-ring sunflower petals and seeded centers, eucalyptus, daisies, baby’s breath, folded cream tissue and kraft paper, a rose silk bow, and a monogram gift tag. The bouquet sways and its blooms move subtly; reduced motion disables these animations. It rests diagonally across the letter's lower-right edge. The complete final letter, signature, and bouquet fit the visible viewport without scrolling, adjusting to mobile browser bars and rotation; the close button keeps its full touch size
-- The hero-only cover opens with an outward photo burst and user-initiated Canon in D, with play/pause available while reading
+- The hero-only cover opens with 45 outward-flying photo cards in five overlapping waves, ten flowers, ten hearts, three small fireworks, and user-initiated Canon in D. The cards reuse the album photographs; the opening still takes about 1.35 seconds. Reduced motion skips the burst. Play/pause remains available while reading.
 - The soundtrack is presented as a cassette sleeve and handwritten tracklist for the three favorite songs; each opens an inline Spotify player, while the floating Canon control manages the background arrangement
 - Cinema cards use perforated ticket layouts, filmstrip previews, and keepsake numbers
 - Year two has a vertical photo-booth strip; year three has paired, tilted snapshots
