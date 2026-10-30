@@ -29,11 +29,11 @@
 .bouquet-keepsake { padding: 26px 12px 17px; background: #f2e4ce; border: 1px solid #d1b694; color: #9e6c76; box-shadow: 0 15px 35px #08040d44; }
 .bouquet-eyebrow { display: block; text-align: center; font-size: 7px; letter-spacing: 1.7px; }
 .flower-bouquet { margin: 10px 0 0; }
-.bouquet-art { display: block; width: 100%; max-height: 425px; overflow: visible; transform-origin: 50% 90%; animation: bouquet-sway 7s ease-in-out infinite; }
-.bouquet-bloom { transform-box: fill-box; transform-origin: center bottom; animation: bouquet-breathe 5.5s ease-in-out var(--bloom-delay,0s) infinite alternate; }
+.bouquet-art { display: block; width: 100%; max-height: 425px; overflow: visible; filter: drop-shadow(0 3px 2px #62433224); transform-origin: 50% 90%; animation: bouquet-sway 8s ease-in-out infinite; }
+.bouquet-bloom { transform-box: fill-box; transform-origin: center bottom; animation: bouquet-breathe 6.5s ease-in-out var(--bloom-delay,0s) infinite alternate; }
 .flower-bouquet figcaption { margin-top: 10px; font-family: 'Caveat',cursive; font-size: 23px; text-align: center; line-height: 1.2; }
-@keyframes bouquet-sway { 0%,100% { transform: rotate(-1.25deg); } 50% { transform: rotate(1.25deg); } }
-@keyframes bouquet-breathe { from { transform: scale(.99); } to { transform: scale(1.02); } }
+@keyframes bouquet-sway { 0%,100% { transform: rotate(-.8deg); } 50% { transform: rotate(.8deg); } }
+@keyframes bouquet-breathe { from { transform: scale(.995); } to { transform: scale(1.012); } }
 @media (max-width: 760px) {
   .final-gift-layout { grid-template-columns: minmax(0,1fr); gap: 10px; }
   .final-letter-presentation { width: min(100%,610px); }
