@@ -269,7 +269,7 @@ test('favorite songs play inside the page with one player and no overlapping bac
   await music.click();
   await expect(music).toHaveAttribute('aria-pressed', 'true');
   for (const [title, artist, id] of [
-    ['K.', 'Cigarettes After Sex', '2xGjfbXZnI8uQDhukoQURQ'],
+    ['Apocalypse', 'Cigarettes After Sex', '1oAwsWBovWRIp7qLMGPIet'],
     ['From The Start', 'Laufey', '43iIQbw5hx986dUEZbr3eN'],
     ['Itsumo', 'Dice & K9', '1rPjfsagVj3yZGXglA2iP3'],
   ]) {
@@ -289,7 +289,7 @@ test('favorite songs play inside the page with one player and no overlapping bac
   }
   await page.getByRole('button', { name: 'Close Itsumo player', exact: true }).click();
   await expect(page.locator('.song-embed iframe')).toHaveCount(0);
-  const first = page.getByRole('button', { name: 'Listen to K. by Cigarettes After Sex', exact: true });
+  const first = page.getByRole('button', { name: 'Listen to Apocalypse by Cigarettes After Sex', exact: true });
   await first.click();
   await music.click();
   await expect(music).toHaveAttribute('aria-pressed', 'true');
